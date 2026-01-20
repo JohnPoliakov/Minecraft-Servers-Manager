@@ -7,11 +7,16 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Resources\MSM.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Fonts\MinecraftTen-VGORe.ttf" />
     <None Remove="Resources\gear-settings.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\MSM.ico" />
   </ItemGroup>
 
   <ItemGroup>
