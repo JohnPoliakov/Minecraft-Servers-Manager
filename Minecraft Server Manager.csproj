@@ -10,7 +10,22 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="UserControls\" />
+    <None Remove="Fonts\MinecraftTen-VGORe.ttf" />
+    <None Remove="Resources\gear-settings.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Fonts\MinecraftTen-VGORe.ttf" />
+    <Resource Include="Resources\gear-settings.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="UserControls\ServerMonitor.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Update="UserControls\ServerEditor.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 
 </Project>
