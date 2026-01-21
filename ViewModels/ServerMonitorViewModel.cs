@@ -553,7 +553,8 @@ namespace Minecraft_Server_Manager.ViewModels
 
                 if (string.IsNullOrEmpty(text)) return;
 
-                var joinMatch = Regex.Match(text, @":\s+([a-zA-Z0-9_]+)\s+joined the game");
+                var joinMatch = Regex.Match(text, @":\s+([a-zA-Z0-9_]+)\[.*\]\s+logged in with");
+
                 if (joinMatch.Success)
                 {
                     string playerName = joinMatch.Groups[1].Value;
@@ -564,7 +565,8 @@ namespace Minecraft_Server_Manager.ViewModels
                     }
                 }
 
-                var leftMatch = Regex.Match(text, @":\s+([a-zA-Z0-9_]+)\s+left the game");
+                var leftMatch = Regex.Match(text, @":\s+([a-zA-Z0-9_]+).*\s+left the game");
+
                 if (leftMatch.Success)
                 {
                     string playerName = leftMatch.Groups[1].Value;
