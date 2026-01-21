@@ -1,8 +1,6 @@
-﻿using System.Windows.Controls;
-
-namespace Minecraft_Server_Manager.UserControls
+﻿namespace Minecraft_Server_Manager.UserControls
 {
-    public partial class MainControl : UserControl
+    public partial class MainControl : System.Windows.Controls.UserControl
     {
         public MainControl()
         {

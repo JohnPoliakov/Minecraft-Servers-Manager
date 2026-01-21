@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Windows;
 using System.Windows.Input;
 
 namespace Minecraft_Server_Manager.ViewModels
@@ -30,6 +29,15 @@ namespace Minecraft_Server_Manager.ViewModels
             set { _currentView = value; OnPropertyChanged(); }
         }
 
+        private string ConfigFolderPath
+        {
+            get
+            {
+                string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                return Path.Combine(documents, "Minecraft Servers Manager");
+            }
+        }
+
         public ICommand EditServerCommand { get; private set; }
         public ICommand MonitorServerCommand { get; private set; }
         public ICommand AddServerCommand { get; private set; }
@@ -43,7 +51,8 @@ namespace Minecraft_Server_Manager.ViewModels
 
             LoadServers();
 
-            MonitorServer(Servers[0]);
+            if (Servers.Count > 0)
+                MonitorServer(Servers[0]);
         }
 
         public void EditServer(ServerProfile profile)
@@ -54,7 +63,6 @@ namespace Minecraft_Server_Manager.ViewModels
 
             editorVm.OnConfigurationSaved += (savedProfile) => MonitorServer(savedProfile);
 
-            // 1. ABONNEMENT SUPPRESSION
             editorVm.OnConfigurationDeleted += (profileToDelete) => DeleteServerImplementation(profileToDelete);
 
             CurrentView = editorVm;
@@ -64,7 +72,7 @@ namespace Minecraft_Server_Manager.ViewModels
         {
             try
             {
-                string appDataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "configs");
+                string appDataPath = ConfigFolderPath;
                 string jsonFile = Path.Combine(appDataPath, $"{profile.Id}.json");
 
                 if (File.Exists(jsonFile))
@@ -85,7 +93,7 @@ namespace Minecraft_Server_Manager.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur lors de la suppression : {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                CustomMessageBox.Show($"Erreur lors de la suppression : {ex.Message}", "Erreur", MessageBoxType.Info);
             }
         }
 
@@ -140,7 +148,7 @@ namespace Minecraft_Server_Manager.ViewModels
         {
             try
             {
-                string appDataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "configs");
+                string appDataPath = ConfigFolderPath;
                 Directory.CreateDirectory(appDataPath);
 
                 string jsonFile = Path.Combine(appDataPath, $"{profile.Id}.json");
@@ -150,12 +158,12 @@ namespace Minecraft_Server_Manager.ViewModels
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erreur lors de la sauvegarde du profil : {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                CustomMessageBox.Show($"Erreur lors de la sauvegarde du profil : {ex.Message}", "Erreur", MessageBoxType.Info);
             }
         }
         private void LoadServers()
         {
-            string appDataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "configs");
+            string appDataPath = ConfigFolderPath;
 
             if (!Directory.Exists(appDataPath)) return;
 
@@ -176,8 +184,49 @@ namespace Minecraft_Server_Manager.ViewModels
                 }
                 catch
                 {
-                    
+
                 }
+            }
+        }
+
+        public async Task StopAllServersAsync()
+        {
+            var tasks = new List<Task>();
+
+            foreach (var server in Servers)
+            {
+                // On vérifie si le serveur a un processus actif
+                if (server.IsRunning && server.ServerProcess != null && !server.ServerProcess.HasExited)
+                {
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        try
+                        {
+                            server.ServerProcess.StandardInput.WriteLine("stop");
+
+                            // On attend jusqu'à 15 secondes que le serveur s'éteigne proprement
+                            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
+                            {
+                                try
+                                {
+                                    await server.ServerProcess.WaitForExitAsync(cts.Token);
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    server.ServerProcess.Kill();
+                                }
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }));
+                }
+            }
+
+            if (tasks.Any())
+            {
+                await Task.WhenAll(tasks);
             }
         }
 

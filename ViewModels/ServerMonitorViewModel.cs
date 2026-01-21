@@ -9,7 +9,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -135,9 +134,9 @@ namespace Minecraft_Server_Manager.ViewModels
             set { _serverProfile.AutoRestartTime = value; OnPropertyChanged(); }
         }
 
-        public Brush StatusColor => IsRunning
-            ? new SolidColorBrush((Color)ColorConverter.ConvertFromString("#27ae60")) // Vert
-            : new SolidColorBrush((Color)ColorConverter.ConvertFromString("#7f8c8d")); // Gris
+        public System.Windows.Media.Brush StatusColor => IsRunning
+         ? new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#27ae60"))
+         : new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#7f8c8d"));
 
         #endregion
 
@@ -188,14 +187,14 @@ namespace Minecraft_Server_Manager.ViewModels
                 {
                     Title = "Used",
                     Values = new ChartValues<double> { 0 },
-                    Fill = new SolidColorBrush(Color.FromRgb(52, 152, 219)),
+                    Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(52, 152, 219)),
                     StrokeThickness = 0
                 },
                 new PieSeries
                 {
                     Title = "Rest",
                     Values = new ChartValues<double> { 100 },
-                    Fill = new SolidColorBrush(Color.FromArgb(50, 255, 255, 255)),
+                    Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(50, 255, 255, 255)),
                     StrokeThickness = 0
                 }
             };
@@ -206,14 +205,14 @@ namespace Minecraft_Server_Manager.ViewModels
                 {
                     Title = "Used",
                     Values = new ChartValues<double> { 0 },
-                    Fill = new SolidColorBrush(Color.FromRgb(46, 204, 113)),
+                    Fill = new SolidColorBrush(System.Windows.Media.Color.FromRgb(46, 204, 113)),
                     StrokeThickness = 0
                 },
                 new PieSeries
                 {
                     Title = "Rest",
                     Values = new ChartValues<double> { 100 },
-                    Fill = new SolidColorBrush(Color.FromArgb(50, 255, 255, 255)),
+                    Fill = new SolidColorBrush(System.Windows.Media.Color.FromArgb(50, 255, 255, 255)),
                     StrokeThickness = 0
                 }
             };
@@ -474,7 +473,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private async void OnServerProcessExited(object sender, EventArgs e)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 _serverProfile.AddLog(">>> Le serveur s'est arrêté.");
                 IsRunning = false;
@@ -493,14 +492,14 @@ namespace Minecraft_Server_Manager.ViewModels
                 _isRestarting = false;
                 _isIntentionalStop = false;
 
-                Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     _serverProfile.AddLog(">>> [SCHEDULER] Redémarrage en cours (Pause 5s)...");
                 });
 
                 await Task.Delay(5000);
 
-                Application.Current.Dispatcher.Invoke(() =>
+                System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     StartServer();
                 });
@@ -527,7 +526,7 @@ namespace Minecraft_Server_Manager.ViewModels
             }
             catch { }
 
-            Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 _serverProfile.AddLog($"[WARN] Arrêt non planifié détecté (Code: {exitCode}).");
                 _serverProfile.AddLog(">>> Redémarrage automatique dans 10 secondes...");
@@ -535,7 +534,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
             await Task.Delay(10000);
 
-            Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 if (!_isIntentionalStop)
                 {
@@ -547,7 +546,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private void OnNewLogReceived(string text)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 ServerLogs += text + "\n";
                 LogEntryReceived?.Invoke(text);

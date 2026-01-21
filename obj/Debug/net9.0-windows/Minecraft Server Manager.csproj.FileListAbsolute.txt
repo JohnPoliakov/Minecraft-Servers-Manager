@@ -18,37 +18,6 @@ C:\Users\Jean Baptiste\Desktop\dev\Minecraft Server Manager\obj\Debug\net9.0-win
 C:\Users\Jean Baptiste\Desktop\dev\Minecraft Server Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.pdb
 C:\Users\Jean Baptiste\Desktop\dev\Minecraft Server Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.genruntimeconfig.cache
 C:\Users\Jean Baptiste\Desktop\dev\Minecraft Server Manager\obj\Debug\net9.0-windows\ref\Minecraft Server Manager.dll
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\MainWindow.g.cs
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\App.g.cs
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager_MarkupCompile.cache
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager_MarkupCompile.lref
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.dll
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\refint\Minecraft Server Manager.dll
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.pdb
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\SidebarView.g.cs
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Server Manager.exe
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Server Manager.deps.json
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Server Manager.runtimeconfig.json
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Server Manager.dll
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Server Manager.pdb
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\MainControl.g.cs
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\GeneratedInternalTypeHelper.g.cs
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\MainWindow.baml
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\MainControl.baml
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\SidebarView.baml
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.g.resources
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.GeneratedMSBuildEditorConfig.editorconfig
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.AssemblyInfoInputs.cache
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.AssemblyInfo.cs
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.csproj.CoreCompileInputs.cache
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.sourcelink.json
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.genruntimeconfig.cache
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\ref\Minecraft Server Manager.dll
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\App.baml
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerEditor.baml
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerEditor.g.cs
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerMonitor.baml
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerMonitor.g.cs
 E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\MainControl.baml
 E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerEditor.baml
 E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerMonitor.baml
@@ -81,10 +50,41 @@ E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.cs
 E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.sourcelink.json
 E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.genruntimeconfig.cache
 E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\ref\Minecraft Server Manager.dll
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager_Content.g.cs
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.csproj.AssemblyReference.cache
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Servers Manager.exe
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Servers Manager.deps.json
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Servers Manager.runtimeconfig.json
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Servers Manager.dll
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\Minecraft Servers Manager.pdb
 C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\LiveCharts.dll
 C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\LiveCharts.Wpf.dll
-C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraf.64F25232.Up2Date
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.csproj.AssemblyReference.cache
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\MainControl.baml
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerEditor.baml
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerMonitor.baml
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\SidebarView.baml
 C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Windows\CustomMessageBox.baml
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\MainWindow.g.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\MainControl.g.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerEditor.g.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\ServerMonitor.g.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\UserControls\SidebarView.g.cs
 C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Windows\CustomMessageBox.g.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\App.g.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Servers Manager_Content.g.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\GeneratedInternalTypeHelper.g.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Servers Manager_MarkupCompile.cache
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Servers Manager_MarkupCompile.lref
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\App.baml
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\MainWindow.baml
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Servers Manager.g.resources
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.AssemblyInfoInputs.cache
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.AssemblyInfo.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.csproj.CoreCompileInputs.cache
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.sourcelink.json
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraf.64F25232.Up2Date
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Servers Manager.dll
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\refint\Minecraft Servers Manager.dll
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Servers Manager.pdb
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.genruntimeconfig.cache
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\ref\Minecraft Servers Manager.dll

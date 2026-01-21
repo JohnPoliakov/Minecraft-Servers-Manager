@@ -5,7 +5,7 @@ using System.Windows.Media;
 
 namespace Minecraft_Server_Manager.UserControls
 {
-    public partial class ServerMonitor : UserControl
+    public partial class ServerMonitor : System.Windows.Controls.UserControl
     {
         public ServerMonitor()
         {
@@ -48,24 +48,24 @@ namespace Minecraft_Server_Manager.UserControls
 
             if (text.Contains("ERROR") || text.Contains("Exception") || text.Contains("Error"))
             {
-                paragraph.Foreground = new SolidColorBrush(Color.FromRgb(231, 76, 60));
+                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(231, 76, 60));
                 paragraph.FontWeight = System.Windows.FontWeights.Bold;
             }
             else if (text.Contains("WARN") || text.Contains("Warning"))
             {
-                paragraph.Foreground = new SolidColorBrush(Color.FromRgb(241, 196, 15));
+                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(241, 196, 15));
             }
             else if (text.Contains("INFO"))
             {
-                paragraph.Foreground = new SolidColorBrush(Color.FromRgb(236, 240, 241));
+                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(236, 240, 241));
             }
             else if (text.Contains("joined the game") || text.Contains("left the game"))
             {
-                paragraph.Foreground = new SolidColorBrush(Color.FromRgb(46, 204, 113));
+                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(46, 204, 113));
             }
             else
             {
-                paragraph.Foreground = new SolidColorBrush(Color.FromRgb(189, 195, 199));
+                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(189, 195, 199));
             }
 
             paragraph.Inlines.Add(new Run(text));
@@ -84,7 +84,7 @@ namespace Minecraft_Server_Manager.UserControls
 
         private void CommandInput_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (sender is TextBox tb)
+            if (sender is System.Windows.Controls.TextBox tb)
             {
                 tb.CaretIndex = tb.Text.Length;
             }

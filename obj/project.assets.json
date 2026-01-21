@@ -88,7 +88,7 @@
     "version": "1.0.0",
     "restore": {
       "projectUniqueName": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
-      "projectName": "Minecraft Server Manager",
+      "projectName": "MinecraftServersManager",
       "projectPath": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
       "packagesPath": "C:\\Users\\Jean Baptiste\\.nuget\\packages\\",
       "outputPath": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\obj\\",
@@ -150,7 +150,7 @@
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
           },
-          "Microsoft.WindowsDesktop.App.WPF": {
+          "Microsoft.WindowsDesktop.App": {
             "privateAssets": "none"
           }
         },

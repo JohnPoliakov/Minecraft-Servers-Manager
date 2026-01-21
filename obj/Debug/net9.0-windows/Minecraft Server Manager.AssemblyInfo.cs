@@ -11,12 +11,13 @@
 using System;
 using System.Reflection;
 
-[assembly: System.Reflection.AssemblyCompanyAttribute("Minecraft Server Manager")]
+[assembly: System.Reflection.AssemblyCompanyAttribute("Arcanic Factory")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
+[assembly: System.Reflection.AssemblyDescriptionAttribute("Gestionnaire d\'instances de serveurs Minecraft")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ead74c28be69a603f096dc2300a61c4673937d57")]
-[assembly: System.Reflection.AssemblyProductAttribute("Minecraft Server Manager")]
-[assembly: System.Reflection.AssemblyTitleAttribute("Minecraft Server Manager")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+10faca5f8e13e686228d20b57fb988fa8a06d75a")]
+[assembly: System.Reflection.AssemblyProductAttribute("Minecraft Servers Manager")]
+[assembly: System.Reflection.AssemblyTitleAttribute("Minecraft Servers Manager")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]

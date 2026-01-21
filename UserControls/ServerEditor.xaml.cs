@@ -1,9 +1,6 @@
-﻿using System.Windows;
-using System.Windows.Controls;
-
-namespace Minecraft_Server_Manager.UserControls
+﻿namespace Minecraft_Server_Manager.UserControls
 {
-    public partial class ServerEditor : UserControl
+    public partial class ServerEditor : System.Windows.Controls.UserControl
     {
         public ServerEditor()
         {

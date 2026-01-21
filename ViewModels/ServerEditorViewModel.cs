@@ -1,5 +1,4 @@
-﻿using Microsoft.Win32;
-using Minecraft_Server_Manager.Models;
+﻿using Minecraft_Server_Manager.Models;
 using Minecraft_Server_Manager.Services;
 using Minecraft_Server_Manager.Views;
 using System.Collections.ObjectModel;
@@ -7,7 +6,6 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -20,6 +18,15 @@ namespace Minecraft_Server_Manager.ViewModels
         public ObservableCollection<PropertyItem> ServerProperties { get; set; }
         public ObservableCollection<string> DetectedJavaPaths { get; set; } = new ObservableCollection<string>();
 
+
+        private string ConfigFolderPath
+        {
+            get
+            {
+                string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                return Path.Combine(documents, "Minecraft Servers Manager");
+            }
+        }
         public string DisplayName
         {
             get => _serverProfile.DisplayName;
@@ -216,7 +223,7 @@ namespace Minecraft_Server_Manager.ViewModels
             }
 
             foundPaths.Add("java");
-            Application.Current.Dispatcher.Invoke(() =>
+            System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 DetectedJavaPaths.Clear();
                 foreach (var path in foundPaths)
@@ -256,7 +263,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private void SelectJdk(object obj)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Executables Java (java.exe)|java.exe|Tous les fichiers|*.*",
                 Title = "Sélectionner l'exécutable Java (bin/java.exe)"
@@ -277,7 +284,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private void SelectJar(object obj)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Fichiers Executable Java (*.jar)|*.jar",
                 Title = "Sélectionner le fichier de lancement du serveur",
@@ -302,7 +309,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private void SelectImage(object obj)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Filter = "Images (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
                 Title = "Choisir une miniature pour le serveur"
@@ -322,7 +329,7 @@ namespace Minecraft_Server_Manager.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("Erreur lors du chargement de l'image : " + ex.Message);
+                    CustomMessageBox.Show("Erreur lors du chargement de l'image : " + ex.Message);
                 }
             }
         }
@@ -352,7 +359,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private void SaveConfiguration(object obj)
         {
-            string appDataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "configs");
+            string appDataPath = ConfigFolderPath;
             Directory.CreateDirectory(appDataPath);
 
             string jsonFile = Path.Combine(appDataPath, $"{_serverProfile.Id}.json");
