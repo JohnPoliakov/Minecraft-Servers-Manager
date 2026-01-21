@@ -1,9 +1,12 @@
-﻿using Minecraft_Server_Manager.Models;
+﻿using Microsoft.Win32;
+using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.Views;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Windows;
 using System.Windows.Input;
 
 namespace Minecraft_Server_Manager.ViewModels
@@ -29,12 +32,14 @@ namespace Minecraft_Server_Manager.ViewModels
 
         public ICommand EditServerCommand { get; private set; }
         public ICommand MonitorServerCommand { get; private set; }
+        public ICommand AddServerCommand { get; private set; }
 
         public MainViewModel()
         {
             Servers = new ObservableCollection<ServerProfile>();
             EditServerCommand = new RelayCommand(param => EditServer((ServerProfile)param));
             MonitorServerCommand = new RelayCommand(param => MonitorServer((ServerProfile)param));
+            AddServerCommand = new RelayCommand(o => AddServer());
 
             LoadServers();
 
@@ -45,7 +50,43 @@ namespace Minecraft_Server_Manager.ViewModels
         {
             if (profile == null) return;
 
-            CurrentView = new ServerEditorViewModel(profile.FolderPath, profile);
+            var editorVm = new ServerEditorViewModel(profile.FolderPath, profile);
+
+            editorVm.OnConfigurationSaved += (savedProfile) => MonitorServer(savedProfile);
+
+            // 1. ABONNEMENT SUPPRESSION
+            editorVm.OnConfigurationDeleted += (profileToDelete) => DeleteServerImplementation(profileToDelete);
+
+            CurrentView = editorVm;
+        }
+
+        private void DeleteServerImplementation(ServerProfile profile)
+        {
+            try
+            {
+                string appDataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "configs");
+                string jsonFile = Path.Combine(appDataPath, $"{profile.Id}.json");
+
+                if (File.Exists(jsonFile))
+                {
+                    File.Delete(jsonFile);
+                }
+
+                Servers.Remove(profile);
+
+                if (Servers.Count > 0)
+                {
+                    MonitorServer(Servers[0]);
+                }
+                else
+                {
+                    CurrentView = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de la suppression : {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
         public void MonitorServer(ServerProfile profile)
@@ -55,6 +96,63 @@ namespace Minecraft_Server_Manager.ViewModels
             CurrentView = new ServerMonitorViewModel(profile);
         }
 
+        private void AddServer()
+        {
+            var dialog = new OpenFolderDialog
+            {
+                Title = "Sélectionnez le dossier racine de votre serveur Minecraft",
+                Multiselect = false
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                string folderPath = dialog.FolderName;
+
+                string propFile = Path.Combine(folderPath, "server.properties");
+                string eulaFile = Path.Combine(folderPath, "eula.txt");
+
+                if (!File.Exists(propFile) || !File.Exists(eulaFile))
+                {
+                    CustomMessageBox.Show(
+                        "Ce dossier ne semble pas contenir un serveur Minecraft valide.\n\nFichiers manquants : server.properties et/ou eula.txt",
+                        "Dossier Invalide",
+                        MessageBoxType.Error);
+                    return;
+                }
+
+                var newProfile = new ServerProfile
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    DisplayName = new DirectoryInfo(folderPath).Name,
+                    FolderPath = folderPath,
+                    JdkPath = "java",
+                    JvmArguments = "-Xmx2G -Xms2G"
+                };
+
+                SaveNewProfile(newProfile);
+
+                Servers.Add(newProfile);
+                EditServer(newProfile);
+            }
+        }
+
+        private void SaveNewProfile(ServerProfile profile)
+        {
+            try
+            {
+                string appDataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "configs");
+                Directory.CreateDirectory(appDataPath);
+
+                string jsonFile = Path.Combine(appDataPath, $"{profile.Id}.json");
+                string jsonString = JsonSerializer.Serialize(profile, new JsonSerializerOptions { WriteIndented = true });
+
+                File.WriteAllText(jsonFile, jsonString);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Erreur lors de la sauvegarde du profil : {ex.Message}", "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
         private void LoadServers()
         {
             string appDataPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "configs");

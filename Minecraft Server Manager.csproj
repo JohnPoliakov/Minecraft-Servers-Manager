@@ -20,6 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Fonts\MinecraftTen-VGORe.ttf" />
     <Resource Include="Resources\gear-settings.png" />
   </ItemGroup>

@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
+             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
              d:DesignHeight="600" d:DesignWidth="1000">
 
     <Grid Background="#2c3e50">
@@ -19,85 +20,104 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock Grid.Column="0" Text="{Binding DisplayName, StringFormat='CONFIGURATION DU SERVEUR: {0}'}" Foreground="#bdc3c7" FontSize="12" FontWeight="Bold" VerticalAlignment="Center"/>
+
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <Image Source="{Binding ServerIconSource}" Width="40" Height="40" Margin="0,0,10,0"/>
+                            <TextBlock Text="{Binding DisplayName}" Foreground="#bdc3c7" FontSize="32" FontWeight="Bold" FontFamily="{StaticResource MC-Font}" VerticalAlignment="Center"/>
+                        </StackPanel>
+
+                        <StackPanel Orientation="Horizontal" Margin="50,0,0,0">
+                            <TextBlock Text="{Binding ServerStatusText}" Foreground="{Binding StatusColor}" FontWeight="Bold" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text=" - Uptime: " Foreground="#7f8c8d" Margin="5,0,0,0" FontSize="12" VerticalAlignment="Center"/>
+                            <TextBlock Text="{Binding UptimeText}" Foreground="#bdc3c7" FontSize="12" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+
                     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
 
-                        <TextBlock Text="{Binding ServerStatusText}" 
-                           Foreground="{Binding StatusColor}" 
-                           FontWeight="Bold" 
-                           VerticalAlignment="Center" 
-                           Margin="0,0,10,0"
-                           FontSize="12"/>
+                        <Button Command="{Binding BackupCommand}" 
+                                Content="SAUVEGARDER"
+                                Height="30" 
+                                Width="90"
+                                Margin="0,0,15,0"
+                                Background="#8e44ad" 
+                                Foreground="White" 
+                                FontWeight="Bold" 
+                                FontSize="11"
+                                BorderThickness="0" 
+                                Padding="15,0"
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Opacity" Value="0.9"/>
+                                        </Trigger>
+                                        <DataTrigger Binding="{Binding IsSwitchEnabled}" Value="False">
+                                            <Setter Property="Background" Value="#95a5a6"/>
+                                            <Setter Property="IsEnabled" Value="False"/>
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                        </Button>
 
+                        <Button Width="40" Height="40" Margin="0,0,15,0" 
+                                Command="{Binding DataContext.EditServerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding ServerProfile}"
+                                Background="Transparent" 
+                                BorderThickness="0" 
+                                Cursor="Hand">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter Property="Opacity" Value="0.8"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <Border Background="#34495e" CornerRadius="5" Padding="8">
+                                <Image Source="/Resources/gear-settings.png" Stretch="Uniform"/>
+                            </Border>
+                        </Button>
 
-                        <StackPanel Orientation="Horizontal" >
-                            <Button Width="50" Margin="0,0,20,0" 
-        Command="{Binding DataContext.EditServerCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-        CommandParameter="{Binding ServerProfile}"
-        Background="Transparent" 
-        BorderThickness="0" 
-        Cursor="Hand">
-
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="{TemplateBinding Background}">
-                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <ToggleButton IsChecked="{Binding IsRunning}"
+                                      IsEnabled="{Binding IsSwitchEnabled}"  
+                                      Command="{Binding ToggleServerCommand}"
+                                      Cursor="Hand"
+                                      Width="50" Height="26">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Grid>
+                                        <Border x:Name="Track" Background="#7f8c8d" CornerRadius="13"/>
+                                        <Border x:Name="Thumb" Width="20" Height="20" HorizontalAlignment="Left" Margin="3,0,0,0" Background="White" CornerRadius="10">
+                                            <Border.Effect>
+                                                <DropShadowEffect ShadowDepth="1" Direction="270" Opacity="0.3" BlurRadius="2"/>
+                                            </Border.Effect>
                                         </Border>
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="Track" Property="Background" Value="#27ae60"/>
+                                            <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
+                                            <Setter TargetName="Thumb" Property="Margin" Value="0,0,3,0"/>
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter TargetName="Track" Property="Opacity" Value="0.5"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
 
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter Property="Opacity" Value="0.8"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </Button.Template>
-
-                                <Border Background="#34495e" CornerRadius="5" Padding="8">
-                                    <Image Source="/Resources/gear-settings.png" Stretch="Uniform"/>
-                                </Border>
-
-                            </Button>
-                            <ToggleButton IsChecked="{Binding IsRunning}"
-                              IsEnabled="{Binding IsSwitchEnabled}"  Command="{Binding ToggleServerCommand}"
-                              Cursor="Hand"
-                              Width="50" Height="26">
-                                <ToggleButton.Template>
-                                    <ControlTemplate TargetType="ToggleButton">
-                                        <Grid>
-                                            <Border x:Name="Track" 
-                                                Background="#7f8c8d" 
-                                                CornerRadius="13"/>
-
-                                            <Border x:Name="Thumb" 
-                                                Width="20" Height="20" 
-                                                HorizontalAlignment="Left" 
-                                                Margin="3,0,0,0" 
-                                                Background="White" 
-                                                CornerRadius="10">
-                                                <Border.Effect>
-                                                    <DropShadowEffect ShadowDepth="1" Direction="270" Opacity="0.3" BlurRadius="2"/>
-                                                </Border.Effect>
-                                            </Border>
-                                        </Grid>
-
-                                        <ControlTemplate.Triggers>
-                                            <Trigger Property="IsChecked" Value="True">
-                                                <Setter TargetName="Track" Property="Background" Value="#27ae60"/>
-                                                <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right"/>
-                                                <Setter TargetName="Thumb" Property="Margin" Value="0,0,3,0"/>
-                                            </Trigger>
-
-                                            <Trigger Property="IsEnabled" Value="False">
-                                                <Setter TargetName="Track" Property="Opacity" Value="0.5"/>
-                                            </Trigger>
-                                        </ControlTemplate.Triggers>
-                                    </ControlTemplate>
-                                </ToggleButton.Template>
-                            </ToggleButton>
-
-                        </StackPanel>
-                        
-                        
                     </StackPanel>
                 </Grid>
             </StackPanel>
@@ -116,19 +136,23 @@
                 </Grid.RowDefinitions>
 
                 <Border Grid.Row="0" Background="#1e1e1e" BorderBrush="#7f8c8d" BorderThickness="1,1,1,0" CornerRadius="5,5,0,0">
-                    <TextBox x:Name="ConsoleOutput"
-                     Text="{Binding ServerLogs, Mode=OneWay}"
-                     IsReadOnly="True"
-                     TextWrapping="Wrap"
-                     VerticalScrollBarVisibility="Auto"
-                     Background="Transparent"
-                     Foreground="#ecf0f1"
-                     FontFamily="Consolas"
-                     FontSize="13"
-                     BorderThickness="0"
-                     Padding="10"
-                     AcceptsReturn="True"
-                     TextChanged="ConsoleOutput_TextChanged"/>
+                    <RichTextBox x:Name="ConsoleOutput"
+                 IsReadOnly="True"
+                 Background="Transparent"
+                 Foreground="#ecf0f1"
+                 FontFamily="Consolas"
+                 FontSize="13"
+                 BorderThickness="0"
+                 Padding="10"
+                 VerticalScrollBarVisibility="Auto">
+                        <RichTextBox.Resources>
+                            <Style TargetType="{x:Type Paragraph}">
+                                <Setter Property="Margin" Value="0"/>
+                            </Style>
+                        </RichTextBox.Resources>
+                        <FlowDocument>
+                        </FlowDocument>
+                    </RichTextBox>
                 </Border>
 
                 <Border Grid.Row="1" Background="#34495e" BorderBrush="#7f8c8d" BorderThickness="1,0,1,1" CornerRadius="0,0,5,5" Padding="5">
@@ -142,35 +166,160 @@
                         <TextBlock Grid.Column="0" Text=">" Foreground="#27ae60" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Margin="5,0,5,0"/>
 
                         <TextBox Grid.Column="1"
-                         Text="{Binding CommandInput, UpdateSourceTrigger=PropertyChanged}"
-                         Background="Transparent"
-                         Foreground="White"
-                         CaretBrush="White"
-                         BorderThickness="0"
-                         FontFamily="Consolas"
-                         FontSize="14"
-                         VerticalAlignment="Center"
-                         Padding="5">
+                             Text="{Binding CommandInput, UpdateSourceTrigger=PropertyChanged}"
+                             Background="Transparent"
+                             Foreground="White"
+                             CaretBrush="White"
+                             BorderThickness="0"
+                             FontFamily="Consolas"
+                             FontSize="14"
+                             VerticalAlignment="Center"
+                             Padding="5"
+                             TextChanged="CommandInput_TextChanged">
+
                             <TextBox.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding SendCommand}"/>
+
+                                <KeyBinding Key="Up" Command="{Binding NavigateHistoryCommand}" CommandParameter="Up"/>
+
+                                <KeyBinding Key="Down" Command="{Binding NavigateHistoryCommand}" CommandParameter="Down"/>
                             </TextBox.InputBindings>
+
                         </TextBox>
 
                         <Button Grid.Column="2" Content="Envoyer" Command="{Binding SendCommand}"
-                        Background="#2980b9" Foreground="White" BorderThickness="0" Cursor="Hand" Padding="15,5" Margin="5,0,0,0" Width="65">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}" CornerRadius="3">
-                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                    </Border>
-                                </ControlTemplate>
-                            </Button.Template>
+                        Background="#2980b9" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,0,0" Width="75">
                         </Button>
                     </Grid>
                 </Border>
             </Grid>
 
-            <Border Grid.Column="1" Background="#2c3e50" Padding="15">
+            <Border Grid.Column="1" Background="#2c3e50" BorderBrush="#7f8c8d" BorderThickness="1,0,0,0" Padding="15">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="MÉTRIQUES EN DIRECT" Foreground="#bdc3c7" FontSize="12" FontWeight="Bold" Margin="0,0,0,15"/>
+
+                    <Grid Grid.Row="1" Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Background="#34495e" CornerRadius="5" Padding="10" Margin="0,0,5,0">
+                            <Border.ToolTip>
+                                <ToolTip Background="#2c3e50" BorderBrush="#7f8c8d" HasDropShadow="True">
+                                    <StackPanel>
+                                        <TextBlock Text="Joueurs Connectés :" FontWeight="Bold" Foreground="#bdc3c7" Margin="0,0,0,5"/>
+
+                                        <ItemsControl ItemsSource="{Binding ConnectedPlayers}">
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Margin="0,2">
+                                                        <Ellipse Width="6" Height="6" Fill="#2ecc71" Margin="0,0,5,0"/>
+                                                        <TextBlock Text="{Binding}" Foreground="White"/>
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+
+                                        <TextBlock Text="(Aucun joueur)" 
+                           Foreground="#7f8c8d" 
+                           Visibility="{Binding PlayerCount, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=Inverted}"
+                           FontStyle="Italic"/>
+                                    </StackPanel>
+                                </ToolTip>
+                            </Border.ToolTip>
+
+                            <StackPanel>
+                                <TextBlock Text="JOUEURS" Foreground="#95a5a6" FontSize="10" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding PlayerCount}" Foreground="#3498db" FontSize="24" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+
+                        <Border Grid.Column="1" Background="#34495e" CornerRadius="5" Padding="10" Margin="5,0,0,0">
+                            <StackPanel>
+                                <TextBlock Text="UPTIME" Foreground="#95a5a6" FontSize="10" FontWeight="Bold"/>
+                                <TextBlock Text="{Binding UptimeText}" Foreground="#2ecc71" FontSize="20" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <Border Grid.Row="2" Background="#34495e" CornerRadius="5" Padding="10" Margin="0,0,0,10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="CPU" Foreground="#95a5a6" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+
+                            <Grid Grid.Row="1" Height="150">
+                                <lvc:PieChart Series="{Binding CpuSeries}" 
+                                  InnerRadius="55" 
+                                  LegendLocation="None" 
+                                  Hoverable="False" 
+                                  DataTooltip="{x:Null}">
+                                    <lvc:PieChart.ChartLegend>
+                                        <lvc:DefaultLegend Visibility="Collapsed"/>
+                                    </lvc:PieChart.ChartLegend>
+                                </lvc:PieChart>
+
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding CpuUsageText}" 
+                                   Foreground="White" 
+                                   FontSize="20" 
+                                   FontWeight="Bold" 
+                                   HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Usage" 
+                                   Foreground="#7f8c8d" 
+                                   FontSize="10" 
+                                   HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                    </Border>
+
+                    <Border Grid.Row="3" Background="#34495e" CornerRadius="5" Padding="10">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Text="RAM" Foreground="#95a5a6" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
+
+                            <Grid Grid.Row="1" Height="150">
+                                <lvc:PieChart Series="{Binding RamSeries}" 
+                                  InnerRadius="55" 
+                                  LegendLocation="None" 
+                                  Hoverable="False" 
+                                  DataTooltip="{x:Null}"/>
+
+                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                                    <TextBlock Text="{Binding RamUsageText}" 
+                                   Foreground="White" 
+                                   FontSize="16" 
+                                   FontWeight="Bold" 
+                                   HorizontalAlignment="Center"/>
+                                    <TextBlock Text="Allouée" 
+                                   Foreground="#7f8c8d" 
+                                   FontSize="10" 
+                                   HorizontalAlignment="Center"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <TextBlock Grid.Row="2" Text="{Binding RamDetailText}" Foreground="#bdc3c7" FontSize="11" HorizontalAlignment="Center" Margin="0,5,0,0"/>
+                        </Grid>
+                    </Border>
+
+                </Grid>
             </Border>
         </Grid>
 

@@ -4,17 +4,17 @@
 winexe
 C#
 .cs
-E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\
 Minecraft_Server_Manager
 none
 false
 TRACE;DEBUG;NET;NET9_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NET9_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
-E:\Minecraft-Server-Manager\App.xaml
-51620965826
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\App.xaml
+6963459931
 11079886305
-15-770841812
-2001565528945
-MainWindow.xaml;UserControls\MainControl.xaml;UserControls\ServerEditor.xaml;UserControls\ServerMonitor.xaml;UserControls\SidebarView.xaml;
+182076685001
+2021212196788
+MainWindow.xaml;UserControls\MainControl.xaml;UserControls\ServerEditor.xaml;UserControls\ServerMonitor.xaml;UserControls\SidebarView.xaml;Windows\CustomMessageBox.xaml;
 
 False
 

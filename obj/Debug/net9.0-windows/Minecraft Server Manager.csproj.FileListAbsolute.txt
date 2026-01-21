@@ -81,3 +81,10 @@ E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.cs
 E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.sourcelink.json
 E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.genruntimeconfig.cache
 E:\Minecraft-Server-Manager\obj\Debug\net9.0-windows\ref\Minecraft Server Manager.dll
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager_Content.g.cs
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraft Server Manager.csproj.AssemblyReference.cache
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\LiveCharts.dll
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\bin\Debug\net9.0-windows\LiveCharts.Wpf.dll
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Minecraf.64F25232.Up2Date
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Windows\CustomMessageBox.baml
+C:\Users\Jean Baptiste\Desktop\Dev\Minecraft-Server-Manager\obj\Debug\net9.0-windows\Windows\CustomMessageBox.g.cs

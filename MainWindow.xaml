@@ -6,7 +6,7 @@
         
         xmlns:vm="clr-namespace:Minecraft_Server_Manager.ViewModels"
         
-        Title="Minecraft Server Manager" Height="700" Width="1100" WindowState="Maximized" ResizeMode="CanMinimize">
+        Title="Minecraft Server Manager" Height="700" Width="1000" WindowState="Maximized" ResizeMode="CanMinimize">
 
     <Window.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis"/>
@@ -22,7 +22,7 @@
 
     <Grid Background="#ecf0f1">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 

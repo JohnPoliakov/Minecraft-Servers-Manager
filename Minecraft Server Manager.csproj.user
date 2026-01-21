@@ -8,5 +8,8 @@
     <Compile Update="UserControls\SidebarView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Windows\CustomMessageBox.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
   </ItemGroup>
 </Project>
