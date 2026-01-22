@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj": {}
+    "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj": {}
   },
   "projects": {
-    "E:\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj": {
+    "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
+        "projectUniqueName": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
         "projectName": "MinecraftServersManager",
-        "projectPath": "E:\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
-        "packagesPath": "C:\\Users\\jejar\\.nuget\\packages\\",
-        "outputPath": "E:\\Minecraft-Server-Manager\\obj\\",
+        "projectPath": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
+        "packagesPath": "C:\\Users\\Jean Baptiste\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\jejar\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Jean Baptiste\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -67,24 +66,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[9.0.11, 9.0.11]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.win-x64",
-              "version": "[9.0.11, 9.0.11]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[9.0.11, 9.0.11]"
-            },
-            {
-              "name": "Microsoft.WindowsDesktop.App.Ref",
-              "version": "[9.0.11, 9.0.11]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"

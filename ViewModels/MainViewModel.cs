@@ -41,6 +41,7 @@ namespace Minecraft_Server_Manager.ViewModels
         public ICommand EditServerCommand { get; private set; }
         public ICommand MonitorServerCommand { get; private set; }
         public ICommand AddServerCommand { get; private set; }
+        public ICommand ShowHomeCommand { get; private set; }
 
         public MainViewModel()
         {
@@ -48,11 +49,17 @@ namespace Minecraft_Server_Manager.ViewModels
             EditServerCommand = new RelayCommand(param => EditServer((ServerProfile)param));
             MonitorServerCommand = new RelayCommand(param => MonitorServer((ServerProfile)param));
             AddServerCommand = new RelayCommand(o => AddServer());
+            ShowHomeCommand = new RelayCommand(o => ShowHome());
 
             LoadServers();
 
-            if (Servers.Count > 0)
-                MonitorServer(Servers[0]);
+
+            ShowHome();
+        }
+
+        private void ShowHome()
+        {
+            CurrentView = new HomeViewModel(Servers, (profile) => MonitorServer(profile));
         }
 
         public void EditServer(ServerProfile profile)
@@ -195,7 +202,6 @@ namespace Minecraft_Server_Manager.ViewModels
 
             foreach (var server in Servers)
             {
-                // On vérifie si le serveur a un processus actif
                 if (server.IsRunning && server.ServerProcess != null && !server.ServerProcess.HasExited)
                 {
                     tasks.Add(Task.Run(async () =>
@@ -204,7 +210,6 @@ namespace Minecraft_Server_Manager.ViewModels
                         {
                             server.ServerProcess.StandardInput.WriteLine("stop");
 
-                            // On attend jusqu'à 15 secondes que le serveur s'éteigne proprement
                             using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(15)))
                             {
                                 try

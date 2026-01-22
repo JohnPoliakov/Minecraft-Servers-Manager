@@ -66,6 +66,21 @@ namespace Minecraft_Server_Manager.Models
             set { _discordWebhookUrl = value; OnPropertyChanged(); }
         }
 
+        private int _playerCount = 0;
+        [JsonIgnore]
+        public int PlayerCount
+        {
+            get { return _playerCount; }
+            set
+            {
+                if (_playerCount != value)
+                {
+                    _playerCount = value;
+                    OnPropertyChanged(); // Indispensable pour que la HomeView se mette à jour
+                }
+            }
+        }
+
         [JsonIgnore]
         public DateTime LastAutoRestart { get; set; } = DateTime.MinValue;
 

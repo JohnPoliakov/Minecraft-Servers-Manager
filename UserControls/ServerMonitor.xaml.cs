@@ -7,6 +7,9 @@ namespace Minecraft_Server_Manager.UserControls
 {
     public partial class ServerMonitor : System.Windows.Controls.UserControl
     {
+
+        private ServerMonitorViewModel _currentVm;
+
         public ServerMonitor()
         {
             InitializeComponent();
@@ -16,10 +19,15 @@ namespace Minecraft_Server_Manager.UserControls
 
         private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
         {
+            if (_currentVm != null)
+            {
+                _currentVm.LogEntryReceived -= AppendColoredLog;
+            }
+
             if (e.NewValue is ServerMonitorViewModel vm)
             {
+                _currentVm = vm;
                 LoadInitialLogs(vm.ServerLogs);
-
                 vm.LogEntryReceived += AppendColoredLog;
             }
         }
@@ -71,7 +79,7 @@ namespace Minecraft_Server_Manager.UserControls
             paragraph.Inlines.Add(new Run(text));
             ConsoleOutput.Document.Blocks.Add(paragraph);
 
-            if (ConsoleOutput.Document.Blocks.Count > 500)
+            if (ConsoleOutput.Document.Blocks.Count > 1000)
             {
                 ConsoleOutput.Document.Blocks.Remove(ConsoleOutput.Document.Blocks.FirstBlock);
             }

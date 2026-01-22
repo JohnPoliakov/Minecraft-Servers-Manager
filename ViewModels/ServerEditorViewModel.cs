@@ -16,7 +16,9 @@ namespace Minecraft_Server_Manager.ViewModels
     {
         private ServerProfile _serverProfile;
         public ObservableCollection<PropertyItem> ServerProperties { get; set; }
-        public ObservableCollection<string> DetectedJavaPaths { get; set; } = new ObservableCollection<string>();
+        public ObservableCollection<JavaInstallation> DetectedJavaPaths { get; set; } = new ObservableCollection<JavaInstallation>();
+        public ObservableCollection<WhitelistPlayer> WhitelistedPlayers { get; set; } = new ObservableCollection<WhitelistPlayer>();
+        public ObservableCollection<OpPlayer> OpPlayers { get; set; } = new ObservableCollection<OpPlayer>();
 
 
         private string ConfigFolderPath
@@ -106,6 +108,10 @@ namespace Minecraft_Server_Manager.ViewModels
         public ICommand SelectJarCommand { get; set; }
         public ICommand ApplyAikarFlagsCommand { get; set; }
         public ICommand TestWebhookCommand { get; set; }
+        public ICommand AddWhitelistCommand { get; set; }
+        public ICommand RemoveWhitelistCommand { get; set; }
+        public ICommand AddOpCommand { get; set; }
+        public ICommand RemoveOpCommand { get; set; }
 
         public event Action<ServerProfile> OnConfigurationSaved;
         public event Action<ServerProfile> OnConfigurationDeleted;
@@ -123,9 +129,13 @@ namespace Minecraft_Server_Manager.ViewModels
             };
 
             ScanForJavaInstallations();
-            if (!string.IsNullOrEmpty(JavaPath) && !DetectedJavaPaths.Contains(JavaPath))
+            if (!string.IsNullOrEmpty(JavaPath) && File.Exists(JavaPath) && !DetectedJavaPaths.Any(x => x.Path == JavaPath))
             {
-                DetectedJavaPaths.Insert(0, JavaPath);
+                DetectedJavaPaths.Insert(0, new JavaInstallation
+                {
+                    Path = JavaPath,
+                    Name = $"{GenerateFriendlyJavaName(JavaPath)} (Personnalisé)"
+                });
             }
 
             ServerProperties = new ObservableCollection<PropertyItem>();
@@ -136,10 +146,16 @@ namespace Minecraft_Server_Manager.ViewModels
             SelectJarCommand = new RelayCommand(SelectJar);
             ApplyAikarFlagsCommand = new RelayCommand(ApplyAikarFlags);
             TestWebhookCommand = new RelayCommand(TestWebhook);
+            AddWhitelistCommand = new RelayCommand(AddWhitelistPlayer);
+            RemoveWhitelistCommand = new RelayCommand(p => RemovePlayer<WhitelistPlayer>(p, "whitelist.json", WhitelistedPlayers));
+            AddOpCommand = new RelayCommand(AddOpPlayer);
+            RemoveOpCommand = new RelayCommand(p => RemovePlayer<OpPlayer>(p, "ops.json", OpPlayers));
 
             LoadImageFromBase64();
 
             LoadServerProperties();
+
+            LoadPlayerLists();
         }
 
         private async void TestWebhook(object obj)
@@ -188,6 +204,33 @@ namespace Minecraft_Server_Manager.ViewModels
             );
         }
 
+        private string GenerateFriendlyJavaName(string javaPath)
+        {
+            if (javaPath == "java") return "Java (Défaut Système)";
+
+            try
+            {
+                FileInfo fileInfo = new FileInfo(javaPath);
+
+                DirectoryInfo binDir = fileInfo.Directory;
+
+                DirectoryInfo versionDir = binDir?.Parent;
+
+                DirectoryInfo vendorDir = versionDir?.Parent;
+
+                string versionName = versionDir?.Name ?? "Version Inconnue";
+                string vendorName = vendorDir?.Name ?? "Local";
+
+                if (vendorName.Contains("Program Files")) vendorName = "Système";
+
+                return $"{versionName} ({vendorName})";
+            }
+            catch
+            {
+                return javaPath;
+            }
+        }
+
         private void ScanForJavaInstallations()
         {
 
@@ -228,12 +271,20 @@ namespace Minecraft_Server_Manager.ViewModels
                 DetectedJavaPaths.Clear();
                 foreach (var path in foundPaths)
                 {
-                    DetectedJavaPaths.Add(path);
+                    DetectedJavaPaths.Add(new JavaInstallation
+                    {
+                        Path = path,
+                        Name = GenerateFriendlyJavaName(path)
+                    });
                 }
 
-                if (!string.IsNullOrEmpty(JavaPath) && !DetectedJavaPaths.Contains(JavaPath))
+                if (!string.IsNullOrEmpty(JavaPath) && !DetectedJavaPaths.Any(x => x.Path == JavaPath))
                 {
-                    DetectedJavaPaths.Insert(0, JavaPath);
+                    DetectedJavaPaths.Insert(0, new JavaInstallation
+                    {
+                        Path = JavaPath,
+                        Name = $"{GenerateFriendlyJavaName(JavaPath)} (Personnalisé)"
+                    });
                 }
             });
         }
@@ -273,9 +324,13 @@ namespace Minecraft_Server_Manager.ViewModels
             {
                 string selectedPath = openFileDialog.FileName;
 
-                if (!DetectedJavaPaths.Contains(selectedPath))
+                if (!DetectedJavaPaths.Any(x => x.Path == selectedPath))
                 {
-                    DetectedJavaPaths.Insert(0, selectedPath);
+                    DetectedJavaPaths.Insert(0, new JavaInstallation
+                    {
+                        Path = selectedPath,
+                        Name = $"{GenerateFriendlyJavaName(selectedPath)} (Manuel)"
+                    });
                 }
 
                 JavaPath = selectedPath;
@@ -334,7 +389,6 @@ namespace Minecraft_Server_Manager.ViewModels
             }
         }
 
-
         private void LoadServerProperties()
         {
             string path = Path.Combine(_serverProfile.FolderPath, "server.properties");
@@ -385,7 +439,6 @@ namespace Minecraft_Server_Manager.ViewModels
                 }
             }
         }
-
         private void DeleteServer(object obj)
         {
             bool? result = CustomMessageBox.Show(
@@ -396,6 +449,89 @@ namespace Minecraft_Server_Manager.ViewModels
             if (result == true)
             {
                 OnConfigurationDeleted?.Invoke(_serverProfile);
+            }
+        }
+
+        private void LoadPlayerLists()
+        {
+            LoadList("whitelist.json", WhitelistedPlayers);
+            LoadList("ops.json", OpPlayers);
+        }
+
+        private void LoadList<T>(string fileName, ObservableCollection<T> collection)
+        {
+            string path = Path.Combine(_serverProfile.FolderPath, fileName);
+            if (File.Exists(path))
+            {
+                try
+                {
+                    var items = JsonSerializer.Deserialize<List<T>>(File.ReadAllText(path));
+                    collection.Clear();
+                    foreach (var item in items) collection.Add(item);
+                }
+                catch { }
+            }
+        }
+
+        private async void AddWhitelistPlayer(object obj)
+        {
+            string username = Microsoft.VisualBasic.Interaction.InputBox("Entrez le pseudo du joueur à whitelister :", "Ajout Whitelist");
+            if (string.IsNullOrWhiteSpace(username)) return;
+
+            var player = await MojangService.GetPlayerProfileAsync(username);
+
+            if (player == null)
+            {
+                CustomMessageBox.Show("Joueur introuvable sur Mojang (vérifiez le pseudo).", "Erreur", MessageBoxType.Error);
+                return;
+            }
+
+            if (WhitelistedPlayers.Any(p => p.Uuid == player.Uuid)) return;
+
+            WhitelistedPlayers.Add(player);
+            SaveList("whitelist.json", WhitelistedPlayers);
+        }
+
+        private async void AddOpPlayer(object obj)
+        {
+            string username = Microsoft.VisualBasic.Interaction.InputBox("Entrez le pseudo du joueur à passer OP (Admin) :", "Ajout Opérateur");
+            if (string.IsNullOrWhiteSpace(username)) return;
+
+            var playerBase = await MojangService.GetPlayerProfileAsync(username);
+            if (playerBase == null)
+            {
+                CustomMessageBox.Show("Joueur introuvable.", "Erreur", MessageBoxType.Error);
+                return;
+            }
+
+            if (OpPlayers.Any(p => p.Uuid == playerBase.Uuid)) return;
+
+            var op = new OpPlayer { Name = playerBase.Name, Uuid = playerBase.Uuid, Level = 4, BypassesPlayerLimit = false };
+
+            OpPlayers.Add(op);
+            SaveList("ops.json", OpPlayers);
+        }
+
+        private void RemovePlayer<T>(object param, string fileName, ObservableCollection<T> collection)
+        {
+            if (param is T player)
+            {
+                collection.Remove(player);
+                SaveList(fileName, collection);
+            }
+        }
+
+        private void SaveList<T>(string fileName, ObservableCollection<T> collection)
+        {
+            try
+            {
+                string path = Path.Combine(_serverProfile.FolderPath, fileName);
+                string json = JsonSerializer.Serialize(collection, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(path, json);
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBox.Show($"Erreur sauvegarde {fileName} : {ex.Message}");
             }
         }
 

@@ -18,6 +18,7 @@ namespace Minecraft_Server_Manager
 
         private void InitializeSystemTray()
         {
+
             _notifyIcon = new NotifyIcon();
 
             try
@@ -65,12 +66,13 @@ namespace Minecraft_Server_Manager
 
         protected override async void OnClosing(CancelEventArgs e)
         {
+
             if (!_isReallyExiting)
             {
                 e.Cancel = true;
                 this.Hide();
 
-                _notifyIcon.ShowBalloonTip(3000, "Manager en arrière-plan", "Les serveurs continuent de tourner. Clic droit sur l'icône pour quitter.", ToolTipIcon.Info);
+                _notifyIcon.ShowBalloonTip(1000, "Manager en arrière-plan", "Les serveurs continuent de tourner. Clic droit sur l'icône pour quitter.", ToolTipIcon.Info);
                 return;
             }
 
@@ -80,7 +82,7 @@ namespace Minecraft_Server_Manager
 
                 this.Hide();
 
-                _notifyIcon.ShowBalloonTip(5000, "Fermeture en cours...", "Arrêt propre des serveurs Minecraft...\nVeuillez patienter.", ToolTipIcon.Info);
+                _notifyIcon.ShowBalloonTip(2500, "Fermeture en cours...", "Arrêt propre des serveurs Minecraft...\nVeuillez patienter.", ToolTipIcon.Info);
 
                 if (this.DataContext is MainViewModel vm)
                 {

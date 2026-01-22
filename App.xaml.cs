@@ -3,9 +3,7 @@ using System.Windows;
 
 namespace Minecraft_Server_Manager
 {
-    /// <summary>
-    /// Interaction logic for App.xaml
-    /// </summary>
+
     public partial class App : System.Windows.Application
     {
 

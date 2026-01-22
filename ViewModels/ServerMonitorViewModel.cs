@@ -398,6 +398,8 @@ namespace Minecraft_Server_Manager.ViewModels
                 _lastTimerTick = DateTime.MinValue;
                 _monitorTimer.Start();
 
+                _serverProfile.PlayerCount = 0;
+
                 SetBusyState(false);
 
                 _ = DiscordService.SendNotification(_serverProfile.DiscordWebhookUrl,
@@ -479,6 +481,7 @@ namespace Minecraft_Server_Manager.ViewModels
                 IsRunning = false;
                 _monitorTimer.Stop();
                 SetBusyState(false);
+                _serverProfile.PlayerCount = 0;
             });
 
             if (_isRestarting)
@@ -548,7 +551,6 @@ namespace Minecraft_Server_Manager.ViewModels
         {
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
-                ServerLogs += text + "\n";
                 LogEntryReceived?.Invoke(text);
 
                 if (string.IsNullOrEmpty(text)) return;
@@ -562,6 +564,7 @@ namespace Minecraft_Server_Manager.ViewModels
                     {
                         ConnectedPlayers.Add(playerName);
                         OnPropertyChanged(nameof(PlayerCount));
+                        _serverProfile.PlayerCount = ConnectedPlayers.Count;
                     }
                 }
 
@@ -574,6 +577,7 @@ namespace Minecraft_Server_Manager.ViewModels
                     {
                         ConnectedPlayers.Remove(playerName);
                         OnPropertyChanged(nameof(PlayerCount));
+                        _serverProfile.PlayerCount = ConnectedPlayers.Count;
                     }
                 }
 
