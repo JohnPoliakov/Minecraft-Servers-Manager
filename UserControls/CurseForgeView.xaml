@@ -21,6 +21,30 @@
             <TextBlock Text="Chargement du navigateur..." FontWeight="Bold" HorizontalAlignment="Center" Foreground="White" FontSize="35" VerticalAlignment="Center"/>
         </Border>
 
-        <wv2:WebView2 x:Name="webView" Grid.Row="1" Source=""/>
+        <wv2:WebView2 x:Name="webView" Grid.Row="1" Source="" Visibility="Visible"/>
+
+        <Border Grid.Row="1" Background="#2c3e50" Visibility="Hidden" Name="ServerInstallBlock">
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock x:Name="ServerInstallStatus" 
+               Text="Téléchargement du serveur en cours..." 
+               Foreground="White" FontSize="35" 
+               TextWrapping="Wrap" 
+               TextAlignment="Center"
+               HorizontalAlignment="Center" 
+               Margin="25,0,25,15"/>
+
+                <ProgressBar x:Name="LoadingBar" 
+             IsIndeterminate="False" 
+             Height="10" 
+             Width="300"
+             Background="#34495e"
+             Foreground="#f1c40f"
+             BorderThickness="0"
+             Visibility="Visible" 
+             Margin="0,0,0,10"/>
+
+                <TextBlock x:Name="ProgressText" Text="0%" Foreground="#95a5a6" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

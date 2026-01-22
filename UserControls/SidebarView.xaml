@@ -14,7 +14,6 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="0,20,0,5">
-            <TextBlock Text="MINECRAFT MANAGER" Foreground="#bdc3c7" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15"/>
             <StackPanel Orientation="Horizontal">
                 <Button Command="{Binding DataContext.ShowHomeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
         Height="45" Margin="5,2" Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Left">
@@ -36,8 +35,11 @@
                     </Button.Template>
                 </Button>
 
-                <Button Command="{Binding DataContext.ShowBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Margin="25,2" Background="Transparent" BorderThickness="0" Cursor="Hand">
-                    <TextBlock Foreground="White" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center">Catalogue<LineBreak />Modpacks</TextBlock>
+                <Button Command="{Binding DataContext.ShowBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Margin="15,2" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Width="25" Height="25" Source="/Resources/curseforge.png" VerticalAlignment="Center" Margin="0, 1, 0, 0"></Image>
+                        <TextBlock Foreground="White" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" Text="Curseforge"/>
+                    </StackPanel>
                     <Button.Template>
                         <ControlTemplate TargetType="Button">
                             <Border Background="{TemplateBinding Background}" CornerRadius="5">

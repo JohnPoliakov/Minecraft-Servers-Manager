@@ -4,6 +4,7 @@ using Minecraft_Server_Manager.ViewModels;
 using Minecraft_Server_Manager.Views;
 using System.IO;
 using System.IO.Compression;
+using System.Windows;
 
 namespace Minecraft_Server_Manager.UserControls
 {
@@ -47,7 +48,7 @@ namespace Minecraft_Server_Manager.UserControls
 
                 webView.CoreWebView2.DownloadStarting += CoreWebView2_DownloadStarting;
 
-                webView.Source = new Uri("https://www.curseforge.com/minecraft/search?class=serverpacks");
+                webView.Source = new Uri("https://www.curseforge.com/minecraft/search?class=modpacks&page=1&pageSize=20");
 
                 if (System.Windows.Application.Current.MainWindow.DataContext is MainViewModel vm)
                 {
@@ -62,49 +63,109 @@ namespace Minecraft_Server_Manager.UserControls
 
         private void CoreWebView2_DownloadStarting(object sender, CoreWebView2DownloadStartingEventArgs e)
         {
-            if (!e.ResultFilePath.EndsWith(".zip")) return;
+
+
+            string fileName = Path.GetFileName(e.ResultFilePath);
+
+            bool isZip = fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
+            bool isServerPack = fileName.IndexOf("Server", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            if (!isZip || !isServerPack)
+            {
+                e.Cancel = true;
+                e.Handled = true;
+
+                CustomMessageBox.Show(
+                    $"Le fichier '{fileName}' a été bloqué.\n\n" +
+                    "Seuls les packs serveur sont autorisés.",
+                    "Téléchargement Refusé", MessageBoxType.Info);
+
+                return;
+            }
+
+            webView.Visibility = Visibility.Hidden;
+            ServerInstallBlock.Visibility = Visibility.Visible;
+
+            LoadingBar.IsIndeterminate = false;
+            LoadingBar.Value = 0;
+            ServerInstallStatus.Text = "Téléchargement du serveur...";
+            if (ProgressText != null) ProgressText.Text = "0%";
 
             string tempFolder = Path.Combine(Path.GetTempPath(), "MSM_Downloads");
             Directory.CreateDirectory(tempFolder);
-
-            string fileName = Path.GetFileName(e.ResultFilePath);
             string destinationPath = Path.Combine(tempFolder, fileName);
 
             e.ResultFilePath = destinationPath;
+            e.Handled = true;
+
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+            if (mainWindow != null) mainWindow.IsEnabled = false;
+
+            e.DownloadOperation.BytesReceivedChanged += (s, args) =>
+            {
+                var downloadOp = (CoreWebView2DownloadOperation)s;
+                Dispatcher.Invoke(() =>
+                {
+                    UpdateProgress(downloadOp.BytesReceived, downloadOp.TotalBytesToReceive);
+                });
+            };
 
             e.DownloadOperation.StateChanged += (s, args) =>
             {
-                var download = (CoreWebView2DownloadOperation)s;
+                var downloadOp = (CoreWebView2DownloadOperation)s;
 
-                if (download.State == CoreWebView2DownloadState.Completed)
+                if (downloadOp.State == CoreWebView2DownloadState.Completed)
                 {
-                    InstallModpack(destinationPath);
+                    Dispatcher.Invoke(() =>
+                    {
+                        InstallModpack(destinationPath);
+                    });
+                }
+                else if (downloadOp.State == CoreWebView2DownloadState.Interrupted)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        ResetUI();
+                        CustomMessageBox.Show("Le téléchargement a été interrompu.", "Erreur");
+                    });
                 }
             };
+        }
 
-            e.Handled = true;
+        public void UpdateProgress(long bytesReceived, ulong? totalBytes)
+        {
+            if (totalBytes == null || totalBytes == 0)
+            {
+                LoadingBar.IsIndeterminate = true;
+                return;
+            }
+
+            double percentage = (double)bytesReceived / (double)totalBytes * 100;
+            LoadingBar.Value = percentage;
+
+            if (ProgressText != null)
+                ProgressText.Text = $"{percentage:0}%";
         }
 
         private async void InstallModpack(string zipPath)
         {
             try
             {
-                string packName = Path.GetFileNameWithoutExtension(zipPath);
+                ServerInstallStatus.Text = "Installation du serveur...\nCela peut prendre quelques instants.";
 
+                LoadingBar.IsIndeterminate = true;
+                if (ProgressText != null) ProgressText.Text = "";
+
+                string packName = Path.GetFileNameWithoutExtension(zipPath);
                 string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string serverRoot = Path.Combine(documents, "Minecraft Servers Manager");
-                string finalServerFolder = Path.Combine(serverRoot, packName);
+                string finalServerFolder = Path.Combine(documents, "Minecraft Servers Manager", packName);
 
                 if (Directory.Exists(finalServerFolder))
-                {
                     finalServerFolder += "_" + DateTime.Now.Ticks;
-                }
-
 
                 await Task.Run(() =>
                 {
                     Directory.CreateDirectory(finalServerFolder);
-
                     ZipFile.ExtractToDirectory(zipPath, finalServerFolder);
 
                     var subDirs = Directory.GetDirectories(finalServerFolder);
@@ -126,6 +187,7 @@ namespace Minecraft_Server_Manager.UserControls
                     }
                 });
 
+                // 3. CRÉATION DU PROFIL
                 var newProfile = new ServerProfile
                 {
                     Id = Guid.NewGuid().ToString(),
@@ -136,22 +198,34 @@ namespace Minecraft_Server_Manager.UserControls
                     JarName = DetectServerJar(finalServerFolder)
                 };
 
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                // 4. RETOUR UI & SUCCÈS
+                if (_mainVM != null)
                 {
                     _mainVM.Servers.Add(newProfile);
-
-                    Views.CustomMessageBox.Show($"Le modpack '{packName}' a été installé avec succès !", "Installation Terminée");
-
                     _mainVM.ShowHomeCommand.Execute(null);
-                });
+                }
+
+                CustomMessageBox.Show($"Le modpack '{packName}' est installé !", "Succès");
 
                 File.Delete(zipPath);
             }
             catch (Exception ex)
             {
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                    Views.CustomMessageBox.Show("Erreur installation : " + ex.Message));
+                CustomMessageBox.Show("Erreur durant l'installation : " + ex.Message);
             }
+            finally
+            {
+                ResetUI();
+            }
+        }
+
+        private void ResetUI()
+        {
+            var mainWindow = System.Windows.Application.Current.MainWindow;
+            if (mainWindow != null) mainWindow.IsEnabled = true;
+
+            webView.Visibility = Visibility.Visible;
+            ServerInstallBlock.Visibility = Visibility.Hidden;
         }
 
         private string DetectServerJar(string folder)

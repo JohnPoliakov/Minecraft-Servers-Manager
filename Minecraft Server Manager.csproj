@@ -34,6 +34,7 @@
 
   <ItemGroup>
     <None Remove="Fonts\MinecraftTen-VGORe.ttf" />
+    <None Remove="Resources\curseforge.png" />
     <None Remove="Resources\gear-settings.png" />
     <None Remove="Resources\save.png" />
   </ItemGroup>
@@ -43,6 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Resources\curseforge.png" />
     <Resource Include="Resources\MSM.ico" />
   </ItemGroup>
 

@@ -3,12 +3,12 @@ using System.Windows.Input;
 
 namespace Minecraft_Server_Manager.Views
 {
-    // Enum pour définir le type de boite (Oui/Non ou juste OK)
     public enum MessageBoxType
     {
-        Confirmation, // Boutons OUI/NON
-        Error,        // Bouton OK (Rouge)
-        Info          // Bouton OK (Vert)
+        Confirmation,
+        Error,
+        Info,
+        Loading
     }
 
     public partial class CustomMessageBox : Window
@@ -20,7 +20,6 @@ namespace Minecraft_Server_Manager.Views
             TitleText.Text = title.ToUpper();
             MessageText.Text = message;
 
-            // Gestion de l'affichage des boutons selon le type
             switch (type)
             {
                 case MessageBoxType.Confirmation:
@@ -38,10 +37,14 @@ namespace Minecraft_Server_Manager.Views
                     BtnYes.Content = "OK";
                     BtnNo.Visibility = Visibility.Collapsed;
                     break;
+                case MessageBoxType.Loading:
+                    BtnYes.Visibility = Visibility.Collapsed;
+                    BtnNo.Visibility = Visibility.Collapsed;
+                    LoadingBar.Visibility = Visibility.Visible;
+                    break;
             }
         }
 
-        // Permet de bouger la fenêtre sans barre de titre standard
         private void DragWindow(object sender, MouseButtonEventArgs e)
         {
             if (e.ButtonState == MouseButtonState.Pressed)
@@ -50,21 +53,36 @@ namespace Minecraft_Server_Manager.Views
 
         private void BtnYes_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = true; // Renvoie TRUE
+            this.DialogResult = true;
             this.Close();
         }
 
         private void BtnNo_Click(object sender, RoutedEventArgs e)
         {
-            this.DialogResult = false; // Renvoie FALSE
+            this.DialogResult = false;
             this.Close();
         }
 
-        // === MÉTHODE STATIQUE POUR L'APPELER FACILEMENT ===
         public static bool? Show(string message, string title = "NOTIFICATION", MessageBoxType type = MessageBoxType.Info)
         {
             var msgBox = new CustomMessageBox(title, message, type);
+            if (System.Windows.Application.Current.MainWindow != null)
+                msgBox.Owner = System.Windows.Application.Current.MainWindow;
+
             return msgBox.ShowDialog();
+        }
+
+        public static CustomMessageBox ShowLoading(string message, string title = "TÉLÉCHARGEMENT")
+        {
+            var msgBox = new CustomMessageBox(title, message, MessageBoxType.Loading);
+
+            if (System.Windows.Application.Current.MainWindow != null)
+            {
+                msgBox.Owner = System.Windows.Application.Current.MainWindow;
+            }
+
+            msgBox.Show();
+            return msgBox;
         }
     }
 }
