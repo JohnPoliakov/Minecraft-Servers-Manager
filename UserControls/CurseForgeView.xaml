@@ -1,0 +1,26 @@
+﻿<UserControl x:Class="Minecraft_Server_Manager.UserControls.CurseForgeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1000">
+
+    <Grid Background="#2c3e50">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#f1c40f" Padding="10" Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
+            <TextBlock Text="Téléchargement et installation du Modpack en cours... Veuillez patienter." Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center"/>
+        </Border>
+
+        <Border Grid.Row="1" Background="#2c3e50" Visibility="Visible">
+            <TextBlock Text="Chargement du navigateur..." FontWeight="Bold" HorizontalAlignment="Center" Foreground="White" FontSize="35" VerticalAlignment="Center"/>
+        </Border>
+
+        <wv2:WebView2 x:Name="webView" Grid.Row="1" Source=""/>
+    </Grid>
+</UserControl>

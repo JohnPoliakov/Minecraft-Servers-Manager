@@ -6,5 +6,6 @@
     <Application.Resources>
         <FontFamily x:Key="MC-Font" >./Fonts/#Minecraft Ten</FontFamily>
         <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter"/>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVis"/>
     </Application.Resources>
 </Application>

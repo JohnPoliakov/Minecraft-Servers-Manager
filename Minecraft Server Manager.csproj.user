@@ -4,6 +4,9 @@
     <_LastSelectedProfileId>E:\Minecraft-Server-Manager\Properties\PublishProfiles\FolderProfile.pubxml</_LastSelectedProfileId>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Update="UserControls\CurseForgeView.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="UserControls\HomeView.xaml.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
 using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.UserControls;
 using Minecraft_Server_Manager.Views;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -42,6 +43,7 @@ namespace Minecraft_Server_Manager.ViewModels
         public ICommand MonitorServerCommand { get; private set; }
         public ICommand AddServerCommand { get; private set; }
         public ICommand ShowHomeCommand { get; private set; }
+        public ICommand ShowBrowserCommand { get; private set; }
 
         public MainViewModel()
         {
@@ -50,11 +52,17 @@ namespace Minecraft_Server_Manager.ViewModels
             MonitorServerCommand = new RelayCommand(param => MonitorServer((ServerProfile)param));
             AddServerCommand = new RelayCommand(o => AddServer());
             ShowHomeCommand = new RelayCommand(o => ShowHome());
+            ShowBrowserCommand = new RelayCommand(o => ShowBrowser());
 
             LoadServers();
 
 
             ShowHome();
+        }
+
+        private void ShowBrowser()
+        {
+            CurrentView = new CurseForgeView();
         }
 
         private void ShowHome()

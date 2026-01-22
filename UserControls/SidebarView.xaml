@@ -15,27 +15,45 @@
 
         <StackPanel Grid.Row="0" Margin="0,20,0,5">
             <TextBlock Text="MINECRAFT MANAGER" Foreground="#bdc3c7" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" Margin="0,0,0,15"/>
+            <StackPanel Orientation="Horizontal">
+                <Button Command="{Binding DataContext.ShowHomeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
+        Height="45" Margin="5,2" Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Left">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+                        <TextBlock Text="Tableau de bord" Foreground="White" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+                    </StackPanel>
 
-            <Button Command="{Binding DataContext.ShowHomeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                    Height="45" Margin="5,2" Background="Transparent" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Left">
-                <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
-                    <TextBlock Text="Tableau de bord" Foreground="White" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
-                </StackPanel>
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#34495e"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
 
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
-                            <ContentPresenter/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#34495e"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-
+                <Button Command="{Binding DataContext.ShowBrowserCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" Margin="25,2" Background="Transparent" BorderThickness="0" Cursor="Hand">
+                    <TextBlock Foreground="White" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center">Catalogue<LineBreak />Modpacks</TextBlock>
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                                <ContentPresenter/>
+                            </Border>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#34495e"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </StackPanel>
+            
+            
             <Separator Background="#7f8c8d" Margin="15,10,15,10" Opacity="0.3"/>
 
             <TextBlock Text="MES SERVEURS" Foreground="#95a5a6" FontSize="10" FontWeight="Bold" Margin="15,0,0,5"/>
