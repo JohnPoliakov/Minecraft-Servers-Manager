@@ -1,21 +1,25 @@
 {
   "version": 2,
-  "dgSpecHash": "k5TSYmLi2wg=",
+  "dgSpecHash": "KkOI9xb7kb0=",
   "success": true,
-  "projectFilePath": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
+  "projectFilePath": "E:\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\Jean Baptiste\\.nuget\\packages\\livecharts\\0.9.7\\livecharts.0.9.7.nupkg.sha512",
-    "C:\\Users\\Jean Baptiste\\.nuget\\packages\\livecharts.wpf\\0.9.7\\livecharts.wpf.0.9.7.nupkg.sha512",
-    "C:\\Users\\Jean Baptiste\\.nuget\\packages\\microsoft.web.webview2\\1.0.3650.58\\microsoft.web.webview2.1.0.3650.58.nupkg.sha512"
+    "C:\\Users\\jejar\\.nuget\\packages\\livecharts\\0.9.7\\livecharts.0.9.7.nupkg.sha512",
+    "C:\\Users\\jejar\\.nuget\\packages\\livecharts.wpf\\0.9.7\\livecharts.wpf.0.9.7.nupkg.sha512",
+    "C:\\Users\\jejar\\.nuget\\packages\\microsoft.web.webview2\\1.0.3650.58\\microsoft.web.webview2.1.0.3650.58.nupkg.sha512",
+    "C:\\Users\\jejar\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.11\\microsoft.windowsdesktop.app.ref.9.0.11.nupkg.sha512",
+    "C:\\Users\\jejar\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.11\\microsoft.netcore.app.ref.9.0.11.nupkg.sha512",
+    "C:\\Users\\jejar\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.11\\microsoft.aspnetcore.app.ref.9.0.11.nupkg.sha512",
+    "C:\\Users\\jejar\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\9.0.11\\microsoft.netcore.app.host.win-x64.9.0.11.nupkg.sha512"
   ],
   "logs": [
     {
       "code": "NU1701",
       "level": "Warning",
-      "message": "Le package 'LiveCharts 0.9.7' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net9.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
+      "message": "Package 'LiveCharts 0.9.7' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net9.0-windows7.0'. This package may not be fully compatible with your project.",
+      "projectPath": "E:\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
+      "filePath": "E:\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
       "libraryId": "LiveCharts",
       "targetGraphs": [
         "net9.0-windows7.0"
@@ -24,10 +28,10 @@
     {
       "code": "NU1701",
       "level": "Warning",
-      "message": "Le package 'LiveCharts.Wpf 0.9.7' a été restauré en utilisant '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' au lieu du framework cible du projet 'net9.0-windows7.0'. Ce package n'est peut-être pas totalement compatible avec votre projet.",
-      "projectPath": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
+      "message": "Package 'LiveCharts.Wpf 0.9.7' was restored using '.NETFramework,Version=v4.6.1, .NETFramework,Version=v4.6.2, .NETFramework,Version=v4.7, .NETFramework,Version=v4.7.1, .NETFramework,Version=v4.7.2, .NETFramework,Version=v4.8, .NETFramework,Version=v4.8.1' instead of the project target framework 'net9.0-windows7.0'. This package may not be fully compatible with your project.",
+      "projectPath": "E:\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\Jean Baptiste\\Desktop\\Dev\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
+      "filePath": "E:\\Minecraft-Server-Manager\\Minecraft Server Manager.csproj",
       "libraryId": "LiveCharts.Wpf",
       "targetGraphs": [
         "net9.0-windows7.0"

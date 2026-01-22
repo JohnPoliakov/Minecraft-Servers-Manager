@@ -68,7 +68,7 @@
                         <Button Command="{Binding DataContext.MonitorServerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" CommandParameter="{Binding}" Height="50" Margin="5,2" Background="#34495e" BorderThickness="0" Cursor="Hand" HorizontalContentAlignment="Left">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
                                 <Border Width="32" Height="32" CornerRadius="3" Margin="0,0,10,0" Background="#34495e">
-                                    <Image Source="{Binding ServerIconSource}" Stretch="UniformToFill"/>
+                                    <Image Source="{Binding ServerIcon}" Stretch="UniformToFill"/>
                                 </Border>
                                 <TextBlock Text="{Binding DisplayName}" Foreground="White" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
                             </StackPanel>

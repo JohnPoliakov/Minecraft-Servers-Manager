@@ -52,7 +52,7 @@ namespace Minecraft_Server_Manager.Models
             set { _autoRestartEnabled = value; OnPropertyChanged(); }
         }
 
-        private string _autoRestartTime = "04:00"; // Valeur par défaut
+        private string _autoRestartTime = "04:00";
         public string AutoRestartTime
         {
             get => _autoRestartTime;
@@ -76,7 +76,7 @@ namespace Minecraft_Server_Manager.Models
                 if (_playerCount != value)
                 {
                     _playerCount = value;
-                    OnPropertyChanged(); // Indispensable pour que la HomeView se mette à jour
+                    OnPropertyChanged();
                 }
             }
         }
