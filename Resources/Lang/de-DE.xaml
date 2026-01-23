@@ -133,7 +133,7 @@
     <sys:String x:Key="Loc_TrayClosingMsg">Minecraft-Server werden ordnungsgemäß gestoppt...\nBitte warten.</sys:String>
 
     <sys:String x:Key="Loc_LogStart">>>> Server wird gestartet...</sys:String>
-    <sys:String x:Key="Loc_LogEula">>>> EULA automatisch akzeptiert (eula=true).</sys:String>
+    <sys:String x:Key="Loc_LogEulaAccepted">>>> EULA akzeptiert (eula=true).</sys:String>
     <sys:String x:Key="Loc_LogStopRequested">>>> Server-Stopp angefordert...</sys:String>
     <sys:String x:Key="Loc_LogAutoRestartScheduled">>>> [SCHEDULER] Automatischer Neustart geplant...</sys:String>
     <sys:String x:Key="Loc_LogKickAll">>>> Alle Spieler werden gekickt...</sys:String>
@@ -150,5 +150,11 @@
     <sys:String x:Key="Loc_LogZipping">>>> Dateien werden komprimiert...</sys:String>
     <sys:String x:Key="Loc_LogSaveOn">>>> Schreibzugriff reaktiviert (save-on).</sys:String>
     <sys:String x:Key="Loc_SelectInstallFolderTitle">Wählen Sie den Standard-Installationsordner</sys:String>
+
+    <sys:String x:Key="Loc_EulaTitle">EULA-Zustimmung erforderlich</sys:String>
+    <sys:String x:Key="Loc_EulaMsg">Um den Server zu starten, müssen Sie die Minecraft-EULA akzeptieren.\n\nMit einem Klick auf JA bestätigen Sie, dass Sie die Bedingungen von Mojang gelesen und akzeptiert haben.\n\n(https://account.mojang.com/documents/minecraft_eula)</sys:String>
+    <sys:String x:Key="Loc_LogEulaRefused">>>> Start abgebrochen: EULA abgelehnt.</sys:String>
+    <sys:String x:Key="Loc_LogEulaAccepted">>>> EULA vom Benutzer akzeptiert.</sys:String>
+    <sys:String x:Key="Loc_LogEulaMissing">>>> Start abgebrochen: EULA-Datei nicht gefunden.</sys:String>
 
 </ResourceDictionary>

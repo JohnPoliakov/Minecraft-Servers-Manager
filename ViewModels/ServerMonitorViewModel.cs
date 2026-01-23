@@ -3,6 +3,7 @@ using LiveCharts.Wpf;
 using Minecraft_Server_Manager.Models;
 using Minecraft_Server_Manager.Services;
 using Minecraft_Server_Manager.Utils;
+using Minecraft_Server_Manager.Views;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -221,21 +222,58 @@ namespace Minecraft_Server_Manager.ViewModels
                 try
                 {
                     string eulaPath = Path.Combine(_serverProfile.FolderPath, "eula.txt");
+                    bool needsEulaAgreement = false;
                     if (File.Exists(eulaPath))
                     {
-                        string[] lines = File.ReadAllLines(eulaPath);
-                        bool modified = false;
-                        for (int i = 0; i < lines.Length; i++)
+                        string content = await File.ReadAllTextAsync(eulaPath);
+                        if (content.Contains("eula=false"))
                         {
-                            if (lines[i].Trim() == "eula=false")
+                            needsEulaAgreement = true;
+                        }
+
+                        if (needsEulaAgreement)
+                        {
+                            bool accepted = false;
+
+                            System.Windows.Application.Current.Dispatcher.Invoke(() =>
                             {
-                                lines[i] = "eula=true";
-                                modified = true;
-                                _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogEula"));
+                                var result = CustomMessageBox.Show(
+                                    ResourceHelper.GetString("Loc_EulaMsg"),
+                                    ResourceHelper.GetString("Loc_EulaTitle"),
+                                    MessageBoxType.Confirmation);
+
+                                accepted = (result == true);
+                            });
+
+                            if (accepted)
+                            {
+                                string[] lines = await File.ReadAllLinesAsync(eulaPath);
+                                for (int i = 0; i < lines.Length; i++)
+                                {
+                                    if (lines[i].Trim() == "eula=false")
+                                        lines[i] = "eula=true";
+                                }
+                                await File.WriteAllLinesAsync(eulaPath, lines);
+                                _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogEulaAccepted"));
+                            }
+                            else
+                            {
+                                IsRunning = false;
+                                SetBusyState(false);
+                                _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogEulaRefused"));
+                                return;
                             }
                         }
-                        if (modified) File.WriteAllLines(eulaPath, lines);
                     }
+                    else
+                    {
+                        _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogEulaMissing"));
+                        IsRunning = false;
+                        SetBusyState(false);
+                        return;
+                    }
+
+
 
                     string javaExec = string.IsNullOrWhiteSpace(_serverProfile.JdkPath) ? "java" : _serverProfile.JdkPath;
                     string args = $"{_serverProfile.JvmArguments} -jar \"{_serverProfile.JarName}\" nogui";

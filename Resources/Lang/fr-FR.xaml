@@ -133,7 +133,7 @@
     <sys:String x:Key="Loc_TrayClosingMsg">Arrêt propre des serveurs Minecraft...\nVeuillez patienter.</sys:String>
 
     <sys:String x:Key="Loc_LogStart">>>> Démarrage du serveur...</sys:String>
-    <sys:String x:Key="Loc_LogEula">>>> EULA acceptée automatiquement (eula=true).</sys:String>
+    <sys:String x:Key="Loc_LogEulaAccepted">>>> EULA acceptée (eula=true).</sys:String>
     <sys:String x:Key="Loc_LogStopRequested">>>> Arrêt du serveur demandé...</sys:String>
     <sys:String x:Key="Loc_LogAutoRestartScheduled">>>> [SCHEDULER] Redémarrage automatique planifié...</sys:String>
     <sys:String x:Key="Loc_LogKickAll">>>> Expulsion de tous les joueurs...</sys:String>
@@ -150,4 +150,9 @@
     <sys:String x:Key="Loc_LogZipping">>>> Compression des fichiers en cours...</sys:String>
     <sys:String x:Key="Loc_LogSaveOn">>>> Écriture disque réactivée (save-on).</sys:String>
     <sys:String x:Key="Loc_SelectInstallFolderTitle">Choisir le dossier d'installation par défaut</sys:String>
+
+    <sys:String x:Key="Loc_EulaTitle">Acceptation EULA requise</sys:String>
+    <sys:String x:Key="Loc_EulaMsg">Pour démarrer le serveur, vous devez accepter l'EULA de Minecraft.\n\nEn cliquant sur OUI, vous confirmez avoir lu et accepté les conditions de Mojang.\n\n(https://account.mojang.com/documents/minecraft_eula)</sys:String>
+    <sys:String x:Key="Loc_LogEulaRefused">>>> Démarrage annulé : EULA refusée.</sys:String>
+    <sys:String x:Key="Loc_LogEulaMissing">>>> Démarrage annulé : fichier EULA introuvable.</sys:String>
 </ResourceDictionary>
