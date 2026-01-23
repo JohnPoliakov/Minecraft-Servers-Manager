@@ -155,4 +155,12 @@
     <sys:String x:Key="Loc_EulaMsg">Pour démarrer le serveur, vous devez accepter l'EULA de Minecraft.\n\nEn cliquant sur OUI, vous confirmez avoir lu et accepté les conditions de Mojang.\n\n(https://account.mojang.com/documents/minecraft_eula)</sys:String>
     <sys:String x:Key="Loc_LogEulaRefused">>>> Démarrage annulé : EULA refusée.</sys:String>
     <sys:String x:Key="Loc_LogEulaMissing">>>> Démarrage annulé : fichier EULA introuvable.</sys:String>
+    
+    <sys:String x:Key="Loc_MsgBox_Yes">OUI</sys:String>
+    <sys:String x:Key="Loc_MsgBox_No">NON</sys:String>
+    <sys:String x:Key="Loc_MsgBox_Cancel">ANNULER</sys:String>
+    <sys:String x:Key="Loc_MsgBox_Validate">VALIDER</sys:String>
+    <sys:String x:Key="Loc_MsgBox_DefaultTitle">NOTIFICATION</sys:String>
+    <sys:String x:Key="Loc_MsgBox_LoadingTitle">TÉLÉCHARGEMENT</sys:String>
+    <sys:String x:Key="Loc_MsgBox_InputTitle">SAISIE</sys:String>
 </ResourceDictionary>

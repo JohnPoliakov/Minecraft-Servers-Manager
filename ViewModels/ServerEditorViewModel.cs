@@ -446,7 +446,9 @@ namespace Minecraft_Server_Manager.ViewModels
         #region Command Actions - Player Management
         private async void AddWhitelistPlayer(object obj)
         {
-            string username = Microsoft.VisualBasic.Interaction.InputBox(ResourceHelper.GetString("Loc_InputWhitelistMsg"), ResourceHelper.GetString("Loc_InputWhitelistTitle"));
+            string username = CustomMessageBox.ShowInput(
+                ResourceHelper.GetString("Loc_InputWhitelistMsg"),
+                ResourceHelper.GetString("Loc_InputWhitelistTitle"));
             if (string.IsNullOrWhiteSpace(username)) return;
 
             var player = await MojangService.GetPlayerProfileAsync(username);
@@ -476,7 +478,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private async void AddOpPlayer(object obj)
         {
-            string username = Microsoft.VisualBasic.Interaction.InputBox(ResourceHelper.GetString("Loc_InputOpMsg"), ResourceHelper.GetString("Loc_InputOpTitle"));
+            string username = CustomMessageBox.ShowInput(ResourceHelper.GetString("Loc_InputOpMsg"), ResourceHelper.GetString("Loc_InputOpTitle"));
             if (string.IsNullOrWhiteSpace(username)) return;
 
             var player = await MojangService.GetPlayerProfileAsync(username);

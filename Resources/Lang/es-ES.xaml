@@ -154,7 +154,13 @@
     <sys:String x:Key="Loc_EulaTitle">Aceptación del EULA requerida</sys:String>
     <sys:String x:Key="Loc_EulaMsg">Para iniciar el servidor, debe aceptar el EULA de Minecraft.\n\nAl hacer clic en SÍ, confirma haber leído y aceptado las condiciones de Mojang.\n\n(https://account.mojang.com/documents/minecraft_eula)</sys:String>
     <sys:String x:Key="Loc_LogEulaRefused">>>> Inicio cancelado: EULA rechazado.</sys:String>
-    <sys:String x:Key="Loc_LogEulaAccepted">>>> EULA aceptado por el usuario.</sys:String>
     <sys:String x:Key="Loc_LogEulaMissing">>>> Inicio cancelado: archivo EULA no encontrado.</sys:String>
 
+    <sys:String x:Key="Loc_MsgBox_Yes">SÍ</sys:String>
+    <sys:String x:Key="Loc_MsgBox_No">NO</sys:String>
+    <sys:String x:Key="Loc_MsgBox_Cancel">CANCELAR</sys:String>
+    <sys:String x:Key="Loc_MsgBox_Validate">VALIDAR</sys:String>
+    <sys:String x:Key="Loc_MsgBox_DefaultTitle">NOTIFICACIÓN</sys:String>
+    <sys:String x:Key="Loc_MsgBox_LoadingTitle">DESCARGANDO</sys:String>
+    <sys:String x:Key="Loc_MsgBox_InputTitle">ENTRADA</sys:String>
 </ResourceDictionary>
