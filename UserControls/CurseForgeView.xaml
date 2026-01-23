@@ -1,47 +1,34 @@
 ﻿<UserControl x:Class="Minecraft_Server_Manager.UserControls.CurseForgeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1000">
 
-    <Grid Background="#2c3e50">
+    <Grid Background="{DynamicResource PrimaryBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
         <Border Grid.Row="0" Background="#f1c40f" Padding="10" Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
-            <TextBlock Text="Téléchargement et installation du Modpack en cours... Veuillez patienter." Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <TextBlock Text="{DynamicResource Loc_ModpackDownloading}" Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center"/>
         </Border>
 
-        <Border Grid.Row="1" Background="#2c3e50" Visibility="Visible">
-            <TextBlock Text="Chargement du navigateur..." FontWeight="Bold" HorizontalAlignment="Center" Foreground="White" FontSize="35" VerticalAlignment="Center"/>
+        <Border Grid.Row="1" Background="{DynamicResource PrimaryBrush}" Visibility="Visible">
+            <TextBlock Text="{DynamicResource Loc_BrowserLoading}" FontWeight="Bold" HorizontalAlignment="Center" Foreground="White" FontSize="35" VerticalAlignment="Center"/>
         </Border>
 
         <wv2:WebView2 x:Name="webView" Grid.Row="1" Source="" Visibility="Visible"/>
 
-        <Border Grid.Row="1" Background="#2c3e50" Visibility="Hidden" Name="ServerInstallBlock">
+        <Border Grid.Row="1" Background="{DynamicResource PrimaryBrush}" Visibility="Hidden" Name="ServerInstallBlock">
             <StackPanel VerticalAlignment="Center">
-                <TextBlock x:Name="ServerInstallStatus" 
-               Text="Téléchargement du serveur en cours..." 
-               Foreground="White" FontSize="35" 
-               TextWrapping="Wrap" 
-               TextAlignment="Center"
-               HorizontalAlignment="Center" 
-               Margin="25,0,25,15"/>
+                <TextBlock x:Name="ServerInstallStatus" Text="{DynamicResource Loc_ServerDownloading}" Foreground="White" FontSize="35" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="25,0,25,15"/>
 
-                <ProgressBar x:Name="LoadingBar" 
-             IsIndeterminate="False" 
-             Height="10" 
-             Width="300"
-             Background="#34495e"
-             Foreground="#f1c40f"
-             BorderThickness="0"
-             Visibility="Visible" 
-             Margin="0,0,0,10"/>
+                <ProgressBar x:Name="LoadingBar" IsIndeterminate="False" Height="10" Width="300" 
+                             Background="{DynamicResource SecondaryBrush}" Foreground="#f1c40f" BorderThickness="0" Visibility="Visible" Margin="0,0,0,10"/>
 
                 <TextBlock x:Name="ProgressText" Text="0%" Foreground="#95a5a6" HorizontalAlignment="Center"/>
             </StackPanel>

@@ -10,17 +10,19 @@ namespace Minecraft_Server_Manager.UserControls
 {
     public partial class CurseForgeView : System.Windows.Controls.UserControl
     {
+        #region Fields
         private MainViewModel _mainVM;
         private bool _isInitialized = false;
+        #endregion
 
+        #region Constructor & Lifecycle
         public CurseForgeView()
         {
             InitializeComponent();
-
             this.Loaded += CurseForgeView_Loaded;
         }
 
-        private async void CurseForgeView_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        private async void CurseForgeView_Loaded(object sender, RoutedEventArgs e)
         {
             this.Loaded -= CurseForgeView_Loaded;
 
@@ -30,7 +32,9 @@ namespace Minecraft_Server_Manager.UserControls
                 _isInitialized = true;
             }
         }
+        #endregion
 
+        #region Initialization
         private async Task InitializeWebView()
         {
             try
@@ -43,10 +47,11 @@ namespace Minecraft_Server_Manager.UserControls
                 Directory.CreateDirectory(userDataFolder);
 
                 var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
-
                 await webView.EnsureCoreWebView2Async(env);
 
+                // 3. Abonnement aux événements
                 webView.CoreWebView2.DownloadStarting += CoreWebView2_DownloadStarting;
+                webView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
 
                 webView.Source = new Uri("https://www.curseforge.com/minecraft/search?class=modpacks&page=1&pageSize=20");
 
@@ -60,11 +65,30 @@ namespace Minecraft_Server_Manager.UserControls
                 CustomMessageBox.Show($"Erreur navigateur : {ex.Message}", "Erreur WebView2");
             }
         }
+        #endregion
 
+        #region WebView2 Events Handlers
+        /// <summary>
+        /// Filtre la navigation pour empêcher de sortir de la section Minecraft/Modpacks.
+        /// </summary>
+        private void CoreWebView2_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
+        {
+            string targetUrl = e.Uri;
+
+            bool hasMinecraft = targetUrl.Contains("minecraft", StringComparison.OrdinalIgnoreCase);
+            bool hasModpacks = targetUrl.Contains("modpacks", StringComparison.OrdinalIgnoreCase);
+
+            if (!hasMinecraft || !hasModpacks)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        /// <summary>
+        /// Intercepte le téléchargement pour l'installer manuellement.
+        /// </summary>
         private void CoreWebView2_DownloadStarting(object sender, CoreWebView2DownloadStartingEventArgs e)
         {
-
-
             string fileName = Path.GetFileName(e.ResultFilePath);
 
             bool isZip = fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
@@ -79,7 +103,6 @@ namespace Minecraft_Server_Manager.UserControls
                     $"Le fichier '{fileName}' a été bloqué.\n\n" +
                     "Seuls les packs serveur sont autorisés.",
                     "Téléchargement Refusé", MessageBoxType.Info);
-
                 return;
             }
 
@@ -116,10 +139,7 @@ namespace Minecraft_Server_Manager.UserControls
 
                 if (downloadOp.State == CoreWebView2DownloadState.Completed)
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        InstallModpack(destinationPath);
-                    });
+                    Dispatcher.Invoke(() => InstallModpack(destinationPath));
                 }
                 else if (downloadOp.State == CoreWebView2DownloadState.Interrupted)
                 {
@@ -131,34 +151,25 @@ namespace Minecraft_Server_Manager.UserControls
                 }
             };
         }
+        #endregion
 
-        public void UpdateProgress(long bytesReceived, ulong? totalBytes)
-        {
-            if (totalBytes == null || totalBytes == 0)
-            {
-                LoadingBar.IsIndeterminate = true;
-                return;
-            }
-
-            double percentage = (double)bytesReceived / (double)totalBytes * 100;
-            LoadingBar.Value = percentage;
-
-            if (ProgressText != null)
-                ProgressText.Text = $"{percentage:0}%";
-        }
-
+        #region Installation Logic
+        /// <summary>
+        /// Logique métier d'extraction et d'installation du serveur.
+        /// </summary>
         private async void InstallModpack(string zipPath)
         {
             try
             {
                 ServerInstallStatus.Text = "Installation du serveur...\nCela peut prendre quelques instants.";
-
                 LoadingBar.IsIndeterminate = true;
                 if (ProgressText != null) ProgressText.Text = "";
 
                 string packName = Path.GetFileNameWithoutExtension(zipPath);
-                string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                string finalServerFolder = Path.Combine(documents, "Minecraft Servers Manager", packName);
+
+                ConfigManager.Load();
+                string baseInstallPath = ConfigManager.Settings.DefaultServerPath;
+                string finalServerFolder = Path.Combine(baseInstallPath, packName);
 
                 if (Directory.Exists(finalServerFolder))
                     finalServerFolder += "_" + DateTime.Now.Ticks;
@@ -170,6 +181,7 @@ namespace Minecraft_Server_Manager.UserControls
 
                     var subDirs = Directory.GetDirectories(finalServerFolder);
                     var files = Directory.GetFiles(finalServerFolder);
+
                     if (files.Length == 0 && subDirs.Length == 1)
                     {
                         string subDir = subDirs[0];
@@ -187,18 +199,16 @@ namespace Minecraft_Server_Manager.UserControls
                     }
                 });
 
-                // 3. CRÉATION DU PROFIL
                 var newProfile = new ServerProfile
                 {
                     Id = Guid.NewGuid().ToString(),
                     DisplayName = packName,
                     FolderPath = finalServerFolder,
                     JdkPath = "java",
-                    JvmArguments = "-Xmx4G -Xms4G",
+                    JvmArguments = $"-Xmx{ConfigManager.Settings.DefaultRam}G -Xms{ConfigManager.Settings.DefaultRam}G",
                     JarName = DetectServerJar(finalServerFolder)
                 };
 
-                // 4. RETOUR UI & SUCCÈS
                 if (_mainVM != null)
                 {
                     _mainVM.Servers.Add(newProfile);
@@ -218,6 +228,23 @@ namespace Minecraft_Server_Manager.UserControls
                 ResetUI();
             }
         }
+        #endregion
+
+        #region UI Management Helpers
+        public void UpdateProgress(long bytesReceived, ulong? totalBytes)
+        {
+            if (totalBytes == null || totalBytes == 0)
+            {
+                LoadingBar.IsIndeterminate = true;
+                return;
+            }
+
+            double percentage = (double)bytesReceived / (double)totalBytes * 100;
+            LoadingBar.Value = percentage;
+
+            if (ProgressText != null)
+                ProgressText.Text = $"{percentage:0}%";
+        }
 
         private void ResetUI()
         {
@@ -227,7 +254,9 @@ namespace Minecraft_Server_Manager.UserControls
             webView.Visibility = Visibility.Visible;
             ServerInstallBlock.Visibility = Visibility.Hidden;
         }
+        #endregion
 
+        #region Utility Methods
         private string DetectServerJar(string folder)
         {
             var jars = Directory.GetFiles(folder, "*.jar");
@@ -239,5 +268,6 @@ namespace Minecraft_Server_Manager.UserControls
             }
             return jars.Length > 0 ? Path.GetFileName(jars[0]) : "";
         }
+        #endregion
     }
 }

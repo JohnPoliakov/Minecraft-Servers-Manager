@@ -1,5 +1,6 @@
 ﻿using Minecraft_Server_Manager.Models;
 using Minecraft_Server_Manager.Services;
+using Minecraft_Server_Manager.Utils;
 using Minecraft_Server_Manager.Views;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -14,27 +15,32 @@ namespace Minecraft_Server_Manager.ViewModels
 {
     public class ServerEditorViewModel : INotifyPropertyChanged
     {
+        #region Fields & Events
         private ServerProfile _serverProfile;
+
+        public event Action<ServerProfile> OnConfigurationSaved;
+        public event Action<ServerProfile> OnConfigurationDeleted;
+        #endregion
+
+        #region Collections
         public ObservableCollection<PropertyItem> ServerProperties { get; set; }
         public ObservableCollection<JavaInstallation> DetectedJavaPaths { get; set; } = new ObservableCollection<JavaInstallation>();
         public ObservableCollection<WhitelistPlayer> WhitelistedPlayers { get; set; } = new ObservableCollection<WhitelistPlayer>();
         public ObservableCollection<OpPlayer> OpPlayers { get; set; } = new ObservableCollection<OpPlayer>();
+        #endregion
 
+        #region Bindable Properties
 
-        private string ConfigFolderPath
-        {
-            get
-            {
-                string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                return Path.Combine(documents, "Minecraft Servers Manager");
-            }
-        }
+        // --- General Info ---
         public string DisplayName
         {
             get => _serverProfile.DisplayName;
             set { _serverProfile.DisplayName = value; OnPropertyChanged(); }
         }
 
+        public string FolderPath => _serverProfile.FolderPath;
+
+        // --- Java Configuration ---
         public string JavaPath
         {
             get => _serverProfile.JdkPath;
@@ -53,6 +59,7 @@ namespace Minecraft_Server_Manager.ViewModels
             set { _serverProfile.JarName = value; OnPropertyChanged(); }
         }
 
+        // --- Visuals ---
         private ImageSource _serverIconSource;
         public ImageSource ServerIconSource
         {
@@ -98,27 +105,30 @@ namespace Minecraft_Server_Manager.ViewModels
                 }
             }
         }
+        #endregion
 
-        public string FolderPath => _serverProfile.FolderPath;
-
+        #region Commands
         public ICommand SaveCommand { get; set; }
         public ICommand DeleteCommand { get; set; }
+
+        // File Pickers
         public ICommand SelectImageCommand { get; set; }
         public ICommand SelectJdkCommand { get; set; }
         public ICommand SelectJarCommand { get; set; }
+
+        // Tools
         public ICommand ApplyAikarFlagsCommand { get; set; }
-        public ICommand TestWebhookCommand { get; set; }
+
+        // Player Management
         public ICommand AddWhitelistCommand { get; set; }
         public ICommand RemoveWhitelistCommand { get; set; }
         public ICommand AddOpCommand { get; set; }
         public ICommand RemoveOpCommand { get; set; }
+        #endregion
 
-        public event Action<ServerProfile> OnConfigurationSaved;
-        public event Action<ServerProfile> OnConfigurationDeleted;
-
+        #region Constructor
         public ServerEditorViewModel(string folderPath, ServerProfile? serverProfile = null)
         {
-
             _serverProfile = serverProfile ?? new ServerProfile
             {
                 Id = Guid.NewGuid().ToString(),
@@ -128,114 +138,38 @@ namespace Minecraft_Server_Manager.ViewModels
                 DisplayName = new DirectoryInfo(folderPath).Name
             };
 
-            ScanForJavaInstallations();
-            if (!string.IsNullOrEmpty(JavaPath) && File.Exists(JavaPath) && !DetectedJavaPaths.Any(x => x.Path == JavaPath))
-            {
-                DetectedJavaPaths.Insert(0, new JavaInstallation
-                {
-                    Path = JavaPath,
-                    Name = $"{GenerateFriendlyJavaName(JavaPath)} (Personnalisé)"
-                });
-            }
-
             ServerProperties = new ObservableCollection<PropertyItem>();
+
+            InitializeCommands();
+
+            ScanForJavaInstallations();
+            LoadImageFromBase64();
+            LoadServerProperties();
+            LoadPlayerLists();
+        }
+
+        private void InitializeCommands()
+        {
             SaveCommand = new RelayCommand(SaveConfiguration);
             DeleteCommand = new RelayCommand(DeleteServer);
+
             SelectImageCommand = new RelayCommand(SelectImage);
             SelectJdkCommand = new RelayCommand(SelectJdk);
             SelectJarCommand = new RelayCommand(SelectJar);
+
             ApplyAikarFlagsCommand = new RelayCommand(ApplyAikarFlags);
-            TestWebhookCommand = new RelayCommand(TestWebhook);
+
             AddWhitelistCommand = new RelayCommand(AddWhitelistPlayer);
             RemoveWhitelistCommand = new RelayCommand(p => RemovePlayer<WhitelistPlayer>(p, "whitelist.json", WhitelistedPlayers));
             AddOpCommand = new RelayCommand(AddOpPlayer);
             RemoveOpCommand = new RelayCommand(p => RemovePlayer<OpPlayer>(p, "ops.json", OpPlayers));
-
-            LoadImageFromBase64();
-
-            LoadServerProperties();
-
-            LoadPlayerLists();
         }
+        #endregion
 
-        private async void TestWebhook(object obj)
-        {
-            if (string.IsNullOrWhiteSpace(DiscordWebhookUrl))
-            {
-                CustomMessageBox.Show("Veuillez d'abord entrer une URL Webhook valide.", "URL Manquante", MessageBoxType.Error);
-                return;
-            }
-
-            await DiscordService.SendNotification(DiscordWebhookUrl, "Test de Notification", "Si vous voyez ceci, la configuration Discord fonctionne !", DiscordService.ColorBlue);
-
-            CustomMessageBox.Show("Une notification de test a été envoyée sur Discord.", "Test Envoyé", MessageBoxType.Info);
-        }
-
-        private void ApplyAikarFlags(object obj)
-        {
-            string aikar = "-Xms8G -Xmx8G " +
-                   "-XX:+UseG1GC " +
-                   "-XX:+ParallelRefProcEnabled " +
-                   "-XX:MaxGCPauseMillis=200 " +
-                   "-XX:+UnlockExperimentalVMOptions " +
-                   "-XX:+DisableExplicitGC " +
-                   "-XX:+AlwaysPreTouch " +
-                   "-XX:G1NewSizePercent=30 " +
-                   "-XX:G1MaxNewSizePercent=40 " +
-                   "-XX:G1HeapRegionSize=8M " +
-                   "-XX:G1ReservePercent=20 " +
-                   "-XX:G1HeapWastePercent=5 " +
-                   "-XX:G1MixedGCCountTarget=4 " +
-                   "-XX:InitiatingHeapOccupancyPercent=15 " +
-                   "-XX:G1MixedGCLiveThresholdPercent=90 " +
-                   "-XX:G1RSetUpdatingPauseTimePercent=5 " +
-                   "-XX:SurvivorRatio=32 " +
-                   "-XX:+PerfDisableSharedMem " +
-                   "-XX:MaxTenuringThreshold=1 " +
-                   "-Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true";
-
-            JvmArguments = aikar;
-
-            CustomMessageBox.Show(
-                "Les flags d'optimisation Aikar (8GB) ont été appliqués !\n\n" +
-                "Note : Si votre PC a moins de 16Go de RAM, baissez le -Xms et -Xmx manuellement.",
-                "Optimisation Appliquée",
-                MessageBoxType.Info
-            );
-        }
-
-        private string GenerateFriendlyJavaName(string javaPath)
-        {
-            if (javaPath == "java") return "Java (Défaut Système)";
-
-            try
-            {
-                FileInfo fileInfo = new FileInfo(javaPath);
-
-                DirectoryInfo binDir = fileInfo.Directory;
-
-                DirectoryInfo versionDir = binDir?.Parent;
-
-                DirectoryInfo vendorDir = versionDir?.Parent;
-
-                string versionName = versionDir?.Name ?? "Version Inconnue";
-                string vendorName = vendorDir?.Name ?? "Local";
-
-                if (vendorName.Contains("Program Files")) vendorName = "Système";
-
-                return $"{versionName} ({vendorName})";
-            }
-            catch
-            {
-                return javaPath;
-            }
-        }
-
+        #region Initialization Logic (Loaders)
         private void ScanForJavaInstallations()
         {
-
             var foundPaths = new List<string>();
-
             var searchRoots = new List<string>
             {
                 @"C:\Program Files\Java",
@@ -266,6 +200,7 @@ namespace Minecraft_Server_Manager.ViewModels
             }
 
             foundPaths.Add("java");
+
             System.Windows.Application.Current.Dispatcher.Invoke(() =>
             {
                 DetectedJavaPaths.Clear();
@@ -278,7 +213,7 @@ namespace Minecraft_Server_Manager.ViewModels
                     });
                 }
 
-                if (!string.IsNullOrEmpty(JavaPath) && !DetectedJavaPaths.Any(x => x.Path == JavaPath))
+                if (!string.IsNullOrEmpty(JavaPath) && File.Exists(JavaPath) && !DetectedJavaPaths.Any(x => x.Path == JavaPath))
                 {
                     DetectedJavaPaths.Insert(0, new JavaInstallation
                     {
@@ -296,7 +231,6 @@ namespace Minecraft_Server_Manager.ViewModels
                 try
                 {
                     byte[] binaryData = Convert.FromBase64String(_serverProfile.IconBase64);
-
                     BitmapImage bi = new BitmapImage();
                     bi.BeginInit();
                     bi.StreamSource = new MemoryStream(binaryData);
@@ -306,86 +240,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
                     ServerIconSource = bi;
                 }
-                catch (Exception ex)
-                {
-                }
-            }
-        }
-
-        private void SelectJdk(object obj)
-        {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Executables Java (java.exe)|java.exe|Tous les fichiers|*.*",
-                Title = "Sélectionner l'exécutable Java (bin/java.exe)"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                string selectedPath = openFileDialog.FileName;
-
-                if (!DetectedJavaPaths.Any(x => x.Path == selectedPath))
-                {
-                    DetectedJavaPaths.Insert(0, new JavaInstallation
-                    {
-                        Path = selectedPath,
-                        Name = $"{GenerateFriendlyJavaName(selectedPath)} (Manuel)"
-                    });
-                }
-
-                JavaPath = selectedPath;
-            }
-        }
-
-        private void SelectJar(object obj)
-        {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Fichiers Executable Java (*.jar)|*.jar",
-                Title = "Sélectionner le fichier de lancement du serveur",
-                InitialDirectory = _serverProfile.FolderPath
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                string fullPath = openFileDialog.FileName;
-                string serverFolder = _serverProfile.FolderPath;
-
-                if (fullPath.StartsWith(serverFolder, StringComparison.OrdinalIgnoreCase))
-                {
-                    JarName = fullPath.Substring(serverFolder.Length).TrimStart('\\', '/');
-                }
-                else
-                {
-                    JarName = fullPath;
-                }
-            }
-        }
-
-        private void SelectImage(object obj)
-        {
-            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Filter = "Images (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
-                Title = "Choisir une miniature pour le serveur"
-            };
-
-            if (openFileDialog.ShowDialog() == true)
-            {
-                try
-                {
-                    string filePath = openFileDialog.FileName;
-
-                    byte[] imageBytes = File.ReadAllBytes(filePath);
-
-                    _serverProfile.IconBase64 = Convert.ToBase64String(imageBytes);
-
-                    LoadImageFromBase64();
-                }
-                catch (Exception ex)
-                {
-                    CustomMessageBox.Show("Erreur lors du chargement de l'image : " + ex.Message);
-                }
+                catch { }
             }
         }
 
@@ -411,47 +266,6 @@ namespace Minecraft_Server_Manager.ViewModels
             }
         }
 
-        private void SaveConfiguration(object obj)
-        {
-            string appDataPath = ConfigFolderPath;
-            Directory.CreateDirectory(appDataPath);
-
-            string jsonFile = Path.Combine(appDataPath, $"{_serverProfile.Id}.json");
-            string jsonString = JsonSerializer.Serialize(_serverProfile, new JsonSerializerOptions { WriteIndented = true });
-
-            File.WriteAllText(jsonFile, jsonString);
-
-            SaveServerPropertiesFile();
-
-            OnConfigurationSaved?.Invoke(_serverProfile);
-        }
-
-        private void SaveServerPropertiesFile()
-        {
-            string path = Path.Combine(_serverProfile.FolderPath, "server.properties");
-            using (StreamWriter writer = new StreamWriter(path))
-            {
-                writer.WriteLine("#Minecraft Server Properties");
-                writer.WriteLine($"#{DateTime.Now}");
-                foreach (var item in ServerProperties)
-                {
-                    writer.WriteLine($"{item.Key}={item.Value}");
-                }
-            }
-        }
-        private void DeleteServer(object obj)
-        {
-            bool? result = CustomMessageBox.Show(
-                $"Êtes-vous sûr de vouloir supprimer le profil \"{DisplayName}\" ?\n\nCela supprimera la configuration du Manager, mais ne touchera PAS aux fichiers du serveur.",
-                "Confirmation de suppression",
-                MessageBoxType.Confirmation);
-
-            if (result == true)
-            {
-                OnConfigurationDeleted?.Invoke(_serverProfile);
-            }
-        }
-
         private void LoadPlayerLists()
         {
             LoadList("whitelist.json", WhitelistedPlayers);
@@ -472,17 +286,174 @@ namespace Minecraft_Server_Manager.ViewModels
                 catch { }
             }
         }
+        #endregion
 
+        #region Command Actions - Configuration & Lifecycle
+        private void SaveConfiguration(object obj)
+        {
+            string appDataPath = ConfigFolderPath;
+            Directory.CreateDirectory(appDataPath);
+
+            string jsonFile = Path.Combine(appDataPath, $"{_serverProfile.Id}.json");
+            string jsonString = JsonSerializer.Serialize(_serverProfile, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(jsonFile, jsonString);
+
+            SaveServerPropertiesFile();
+
+            OnConfigurationSaved?.Invoke(_serverProfile);
+        }
+
+        private void DeleteServer(object obj)
+        {
+            string msg = string.Format(ResourceHelper.GetString("Loc_ConfirmDeleteMsg"), DisplayName);
+            bool? result = CustomMessageBox.Show(
+                msg,
+                ResourceHelper.GetString("Loc_ConfirmDeleteTitle"),
+                MessageBoxType.Confirmation);
+
+            if (result == true)
+            {
+                OnConfigurationDeleted?.Invoke(_serverProfile);
+            }
+        }
+
+        private void SaveServerPropertiesFile()
+        {
+            string path = Path.Combine(_serverProfile.FolderPath, "server.properties");
+            using (StreamWriter writer = new StreamWriter(path))
+            {
+                writer.WriteLine("#Minecraft Server Properties");
+                writer.WriteLine($"#{DateTime.Now}");
+                foreach (var item in ServerProperties)
+                {
+                    writer.WriteLine($"{item.Key}={item.Value}");
+                }
+            }
+        }
+        #endregion
+
+        #region Command Actions - File Selection
+        private void SelectJdk(object obj)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Executables Java (java.exe)|java.exe|Tous les fichiers|*.*",
+                Title = ResourceHelper.GetString("Loc_SelectJavaTitle")
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string selectedPath = openFileDialog.FileName;
+
+                if (!DetectedJavaPaths.Any(x => x.Path == selectedPath))
+                {
+                    DetectedJavaPaths.Insert(0, new JavaInstallation
+                    {
+                        Path = selectedPath,
+                        Name = $"{GenerateFriendlyJavaName(selectedPath)} ({ResourceHelper.GetString("Loc_JavaManual")})"
+                    });
+                }
+
+                JavaPath = selectedPath;
+            }
+        }
+
+        private void SelectJar(object obj)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Fichiers Executable Java (*.jar)|*.jar",
+                Title = ResourceHelper.GetString("Loc_SelectJarTitle"),
+                InitialDirectory = _serverProfile.FolderPath
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string fullPath = openFileDialog.FileName;
+                string serverFolder = _serverProfile.FolderPath;
+
+                if (fullPath.StartsWith(serverFolder, StringComparison.OrdinalIgnoreCase))
+                {
+                    JarName = fullPath.Substring(serverFolder.Length).TrimStart('\\', '/');
+                }
+                else
+                {
+                    JarName = fullPath;
+                }
+            }
+        }
+
+        private void SelectImage(object obj)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Images (*.png;*.jpg;*.jpeg)|*.png;*.jpg;*.jpeg",
+                Title = ResourceHelper.GetString("Loc_SelectIconTitle")
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    string filePath = openFileDialog.FileName;
+                    byte[] imageBytes = File.ReadAllBytes(filePath);
+
+                    _serverProfile.IconBase64 = Convert.ToBase64String(imageBytes);
+                    LoadImageFromBase64();
+                }
+                catch (Exception ex)
+                {
+                    CustomMessageBox.Show(string.Format(ResourceHelper.GetString("Loc_ErrorImageLoad"), ex.Message));
+                }
+            }
+        }
+        #endregion
+
+        #region Command Actions - Tools & Optimization
+        private void ApplyAikarFlags(object obj)
+        {
+            string aikar = "-Xms8G -Xmx8G " +
+                   "-XX:+UseG1GC " +
+                   "-XX:+ParallelRefProcEnabled " +
+                   "-XX:MaxGCPauseMillis=200 " +
+                   "-XX:+UnlockExperimentalVMOptions " +
+                   "-XX:+DisableExplicitGC " +
+                   "-XX:+AlwaysPreTouch " +
+                   "-XX:G1NewSizePercent=30 " +
+                   "-XX:G1MaxNewSizePercent=40 " +
+                   "-XX:G1HeapRegionSize=8M " +
+                   "-XX:G1ReservePercent=20 " +
+                   "-XX:G1HeapWastePercent=5 " +
+                   "-XX:G1MixedGCCountTarget=4 " +
+                   "-XX:InitiatingHeapOccupancyPercent=15 " +
+                   "-XX:G1MixedGCLiveThresholdPercent=90 " +
+                   "-XX:G1RSetUpdatingPauseTimePercent=5 " +
+                   "-XX:SurvivorRatio=32 " +
+                   "-XX:+PerfDisableSharedMem " +
+                   "-XX:MaxTenuringThreshold=1 " +
+                   "-Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true";
+
+            JvmArguments = aikar;
+
+            CustomMessageBox.Show(
+                ResourceHelper.GetString("Loc_AikarMsg"),
+                ResourceHelper.GetString("Loc_AikarTitle"),
+                MessageBoxType.Info
+            );
+        }
+        #endregion
+
+        #region Command Actions - Player Management
         private async void AddWhitelistPlayer(object obj)
         {
-            string username = Microsoft.VisualBasic.Interaction.InputBox("Entrez le pseudo du joueur à whitelister :", "Ajout Whitelist");
+            string username = Microsoft.VisualBasic.Interaction.InputBox(ResourceHelper.GetString("Loc_InputWhitelistMsg"), ResourceHelper.GetString("Loc_InputWhitelistTitle"));
             if (string.IsNullOrWhiteSpace(username)) return;
 
             var player = await MojangService.GetPlayerProfileAsync(username);
 
             if (player == null)
             {
-                CustomMessageBox.Show("Joueur introuvable sur Mojang (vérifiez le pseudo).", "Erreur", MessageBoxType.Error);
+                CustomMessageBox.Show(ResourceHelper.GetString("Loc_PlayerNotFound"), ResourceHelper.GetString("Loc_Error"), MessageBoxType.Error);
                 return;
             }
 
@@ -494,13 +465,13 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private async void AddOpPlayer(object obj)
         {
-            string username = Microsoft.VisualBasic.Interaction.InputBox("Entrez le pseudo du joueur à passer OP (Admin) :", "Ajout Opérateur");
+            string username = Microsoft.VisualBasic.Interaction.InputBox(ResourceHelper.GetString("Loc_InputOpMsg"), ResourceHelper.GetString("Loc_InputOpTitle"));
             if (string.IsNullOrWhiteSpace(username)) return;
 
             var playerBase = await MojangService.GetPlayerProfileAsync(username);
             if (playerBase == null)
             {
-                CustomMessageBox.Show("Joueur introuvable.", "Erreur", MessageBoxType.Error);
+                CustomMessageBox.Show(ResourceHelper.GetString("Loc_PlayerNotFound"), ResourceHelper.GetString("Loc_Error"), MessageBoxType.Error);
                 return;
             }
 
@@ -534,9 +505,47 @@ namespace Minecraft_Server_Manager.ViewModels
                 CustomMessageBox.Show($"Erreur sauvegarde {fileName} : {ex.Message}");
             }
         }
+        #endregion
 
+        #region Helpers & Utils
+        private string ConfigFolderPath
+        {
+            get
+            {
+                string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                return Path.Combine(documents, "Minecraft Servers Manager");
+            }
+        }
+
+        private string GenerateFriendlyJavaName(string javaPath)
+        {
+            if (javaPath == "java") return "Java (Défaut Système)";
+
+            try
+            {
+                FileInfo fileInfo = new FileInfo(javaPath);
+                DirectoryInfo binDir = fileInfo.Directory;
+                DirectoryInfo versionDir = binDir?.Parent;
+                DirectoryInfo vendorDir = versionDir?.Parent;
+
+                string versionName = versionDir?.Name ?? "Version Inconnue";
+                string vendorName = vendorDir?.Name ?? "Local";
+
+                if (vendorName.Contains("Program Files")) vendorName = "Système";
+
+                return $"{versionName} ({vendorName})";
+            }
+            catch
+            {
+                return javaPath;
+            }
+        }
+        #endregion
+
+        #region INotifyPropertyChanged Implementation
         public event PropertyChangedEventHandler PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        #endregion
     }
 }

@@ -35,6 +35,10 @@
   <ItemGroup>
     <None Remove="Fonts\MinecraftTen-VGORe.ttf" />
     <None Remove="Resources\curseforge.png" />
+    <None Remove="Resources\Flags\flag-de.png" />
+    <None Remove="Resources\Flags\flag-es.png" />
+    <None Remove="Resources\Flags\flag-fr.png" />
+    <None Remove="Resources\Flags\flag-uk.png" />
     <None Remove="Resources\gear-settings.png" />
     <None Remove="Resources\save.png" />
   </ItemGroup>
@@ -45,6 +49,10 @@
 
   <ItemGroup>
     <Resource Include="Resources\curseforge.png" />
+    <Resource Include="Resources\Flags\flag-de.png" />
+    <Resource Include="Resources\Flags\flag-es.png" />
+    <Resource Include="Resources\Flags\flag-fr.png" />
+    <Resource Include="Resources\Flags\flag-uk.png" />
     <Resource Include="Resources\MSM.ico" />
   </ItemGroup>
 

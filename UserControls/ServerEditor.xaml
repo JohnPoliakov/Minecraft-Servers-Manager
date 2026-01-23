@@ -13,11 +13,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="TabItem">
                         <Border Name="Border" BorderThickness="0,0,0,3" BorderBrush="Transparent" Margin="0,0,10,0" Padding="10,5">
-                            <ContentPresenter x:Name="ContentSite"
-                                            VerticalAlignment="Center"
-                                            HorizontalAlignment="Center"
-                                            ContentSource="Header"
-                                            Margin="10,5"/>
+                            <ContentPresenter x:Name="ContentSite" VerticalAlignment="Center" HorizontalAlignment="Center" ContentSource="Header" Margin="10,5"/>
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsSelected" Value="True">
@@ -34,7 +30,7 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Background="#2c3e50">
+    <Grid Background="{DynamicResource PrimaryBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -47,11 +43,11 @@
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
-            <Border Grid.Column="0" Width="64" Height="64" CornerRadius="5" Background="#34495e" Margin="0,0,15,0">
+            <Border Grid.Column="0" Width="64" Height="64" CornerRadius="5" Background="{DynamicResource SecondaryBrush}" Margin="0,0,15,0">
                 <Grid>
                     <Image Source="{Binding ServerIconSource}" Stretch="UniformToFill"/>
-                    <Button Command="{Binding SelectImageCommand}" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="Changer l'icône">
-                        <TextBlock Text="Modifier" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0" IsHitTestVisible="False">
+                    <Button Command="{Binding SelectImageCommand}" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip="{DynamicResource Loc_ChangeIconTooltip}">
+                        <TextBlock Text="{DynamicResource Loc_Edit}" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" Opacity="0" IsHitTestVisible="False">
                             <TextBlock.Style>
                                 <Style TargetType="TextBlock">
                                     <Style.Triggers>
@@ -65,39 +61,29 @@
                     </Button>
                 </Grid>
             </Border>
-
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                <TextBlock Text="ÉDITION DU SERVEUR" Foreground="#7f8c8d" FontSize="12" FontWeight="Bold"/>
+                <TextBlock Text="{DynamicResource Loc_ServerEdition}" Foreground="#7f8c8d" FontSize="12" FontWeight="Bold"/>
                 <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Foreground="White" BorderThickness="0,0,0,1" BorderBrush="#bdc3c7" FontSize="24" FontWeight="Bold" Margin="0,5,0,0"/>
             </StackPanel>
         </Grid>
 
         <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0" Margin="10">
 
-            <TabItem Header="Configuration">
+            <TabItem Header="{DynamicResource Loc_TabConfiguration}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
-                        <TextBlock Text="VERSION JAVA" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="{DynamicResource Loc_JavaVersion}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
                         <Grid Margin="0,0,0,15">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <ComboBox Grid.Column="0" 
-                                      ItemsSource="{Binding DetectedJavaPaths}" 
-                                      SelectedValue="{Binding JavaPath, UpdateSourceTrigger=PropertyChanged}"
-                                      SelectedValuePath="Path"
-                                      DisplayMemberPath="Name"
-                                      IsEditable="False" 
-                                      Padding="10,5" 
-                                      Background="#34495e" 
-                                      Foreground="Black" 
-                                      BorderThickness="0" 
-                                      VerticalContentAlignment="Center">
+                            <ComboBox Grid.Column="0" ItemsSource="{Binding DetectedJavaPaths}" SelectedValue="{Binding JavaPath, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Path" DisplayMemberPath="Name" IsEditable="False" Padding="10,5" 
+                                      Background="{DynamicResource SecondaryBrush}" Foreground="Black" BorderThickness="0" VerticalContentAlignment="Center">
                                 <ComboBox.Resources>
                                     <Style TargetType="ComboBoxItem">
-                                        <Setter Property="Background" Value="#34495e"/>
+                                        <Setter Property="Background" Value="{DynamicResource SecondaryBrush}"/>
                                         <Setter Property="Foreground" Value="White"/>
                                         <Setter Property="BorderThickness" Value="0"/>
                                         <Setter Property="Padding" Value="5"/>
@@ -121,75 +107,67 @@
                                     </Style>
                                 </ComboBox.Resources>
                             </ComboBox>
-
-                            <Button Grid.Column="1" Content="..." Command="{Binding SelectJdkCommand}" Width="40" Background="#607ACC" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
+                            <Button Grid.Column="1" Content="..." Command="{Binding SelectJdkCommand}" Width="40" Background="#95a5a6" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
                         </Grid>
 
-                        <TextBlock Text="FICHIER DE LANCEMENT (.JAR)" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="{DynamicResource Loc_LaunchFile}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
                         <Grid Margin="0,0,0,15">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="79*"/>
                                 <ColumnDefinition Width="5*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" Text="{Binding JarName}" Padding="5" Background="#34495e" Foreground="White" BorderThickness="0"/>
-                            <Button Grid.Column="1" Content="..." Command="{Binding SelectJarCommand}" Width="40" Background="#607ACC" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
+                            <TextBox Grid.Column="0" Text="{Binding JarName}" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="White" BorderThickness="0"/>
+                            <Button Grid.Column="1" Content="..." Command="{Binding SelectJarCommand}" Width="40" Background="#95a5a6" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
                         </Grid>
 
-                        <TextBlock Text="ARGUMENTS JVM (RAM)" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="{DynamicResource Loc_JvmArgs}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
                         <Grid Margin="0,0,0,15">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
-                            <TextBox Grid.Row="0" Text="{Binding JvmArguments}" TextWrapping="Wrap" Height="60" Padding="5" Background="#34495e" Foreground="White" BorderThickness="0" AcceptsReturn="True"/>
-                            <Button Grid.Row="1" Content="🗲 Appliquer les Flags Aikar" Command="{Binding ApplyAikarFlagsCommand}" HorizontalAlignment="Right" Margin="0,5,0,0" Background="Transparent" Foreground="#F5CC27" BorderThickness="0" Cursor="Hand"/>
+                            <TextBox Grid.Row="0" Text="{Binding JvmArguments}" TextWrapping="Wrap" Height="60" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="White" BorderThickness="0" AcceptsReturn="True"/>
+                            <Button Grid.Row="1" Content="{DynamicResource Loc_ApplyAikar}" Command="{Binding ApplyAikarFlagsCommand}" HorizontalAlignment="Right" Margin="0,5,0,0" Background="Transparent" Foreground="#F5CC27" BorderThickness="0" Cursor="Hand"/>
                         </Grid>
 
-                        <TextBlock Text="WEBHOOK DISCORD (NOTIFICATIONS)" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <TextBlock Text="{DynamicResource Loc_DiscordWebhook}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
                         <Grid Margin="0,0,0,15">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" Text="{Binding DiscordWebhookUrl}" Padding="5" Background="#34495e" Foreground="#7289da" BorderThickness="0"/>
+                            <TextBox Grid.Column="0" Text="{Binding DiscordWebhookUrl}" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="#7289da" BorderThickness="0"/>
                         </Grid>
 
                         <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
-                            <CheckBox IsChecked="{Binding AutoRestartEnabled}" Content="Redémarrage Auto" Foreground="White" VerticalAlignment="Center"/>
-                            <TextBlock Text=" à " Foreground="#bdc3c7" VerticalAlignment="Center" Margin="10,0,5,0"/>
-                            <TextBox Text="{Binding AutoRestartTime}" Width="60" Padding="5" Background="#34495e" Foreground="White" BorderThickness="0" ToolTip="Format HH:mm"/>
+                            <CheckBox IsChecked="{Binding AutoRestartEnabled}" Content="{DynamicResource Loc_AutoRestart}" Foreground="White" VerticalAlignment="Center"/>
+                            <TextBlock Text="{DynamicResource Loc_At}" Foreground="#bdc3c7" VerticalAlignment="Center" Margin="10,0,5,0"/>
+                            <TextBox Text="{Binding AutoRestartTime}" Width="60" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="White" BorderThickness="0" ToolTip="Format HH:mm"/>
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
-            <TabItem Header="Propriétés du serveur">
+
+            <TabItem Header="{DynamicResource Loc_TabProperties}">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="{DynamicResource Loc_AdvancedConfig}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,10"/>
 
-                    <TextBlock Grid.Row="0" Text="CONFIGURATION AVANCÉE" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,10"/>
-
-                    <DataGrid Grid.Row="1" 
-                              ItemsSource="{Binding ServerProperties}" 
-                              AutoGenerateColumns="False" 
-                              Background="#34495e" 
-                              RowBackground="#34495e" 
-                              Foreground="White" 
-                              BorderThickness="0" 
-                              GridLinesVisibility="Horizontal"
-                              HorizontalGridLinesBrush="#2c3e50"
-                              HeadersVisibility="Column">
-
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding ServerProperties}" AutoGenerateColumns="False" 
+                              Background="{DynamicResource SecondaryBrush}" RowBackground="{DynamicResource SecondaryBrush}" 
+                              Foreground="White" BorderThickness="0" GridLinesVisibility="Horizontal" 
+                              HorizontalGridLinesBrush="{DynamicResource PrimaryBrush}" HeadersVisibility="Column">
                         <DataGrid.Resources>
                             <Style TargetType="DataGridColumnHeader">
-                                <Setter Property="Background" Value="#2c3e50"/>
+                                <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
                                 <Setter Property="Foreground" Value="#bdc3c7"/>
                                 <Setter Property="Padding" Value="10,5"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="BorderThickness" Value="0,0,1,0"/>
-                                <Setter Property="BorderBrush" Value="#34495e"/>
+                                <Setter Property="BorderBrush" Value="{DynamicResource SecondaryBrush}"/>
                             </Style>
                             <Style TargetType="DataGridCell">
                                 <Setter Property="Padding" Value="5"/>
@@ -210,9 +188,8 @@
                                 </Style.Triggers>
                             </Style>
                         </DataGrid.Resources>
-
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Option" Binding="{Binding Key}" Width="2*" IsReadOnly="True">
+                            <DataGridTextColumn Header="{DynamicResource Loc_Option}" Binding="{Binding Key}" Width="2*" IsReadOnly="True">
                                 <DataGridTextColumn.ElementStyle>
                                     <Style TargetType="TextBlock">
                                         <Setter Property="FontWeight" Value="Bold"/>
@@ -220,13 +197,13 @@
                                     </Style>
                                 </DataGridTextColumn.ElementStyle>
                             </DataGridTextColumn>
-
-                            <DataGridTextColumn Header="Valeur" Binding="{Binding Value}" Width="3*"/>
+                            <DataGridTextColumn Header="{DynamicResource Loc_Value}" Binding="{Binding Value}" Width="3*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Grid>
             </TabItem>
-            <TabItem Header="Joueurs &amp; Permissions">
+
+            <TabItem Header="{DynamicResource Loc_TabPlayersPermissions}">
                 <Grid Margin="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -235,17 +212,17 @@
                     </Grid.ColumnDefinitions>
 
                     <DockPanel Grid.Column="0">
-                        <TextBlock Text="WHITELIST" DockPanel.Dock="Top" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
-
+                        <TextBlock Text="{DynamicResource Loc_Whitelist}" DockPanel.Dock="Top" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
                         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                            <Button Content="Retirer" Command="{Binding RemoveWhitelistCommand}" CommandParameter="{Binding SelectedItem, ElementName=ListWhitelist}" Background="#e74c3c" Foreground="White" Padding="10,5" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand"/>
-                            <Button Content="+ Ajouter Joueur" Command="{Binding AddWhitelistCommand}" Background="#2ecc71" Foreground="White" Padding="10,5" BorderThickness="0" Cursor="Hand"/>
+                            <Button Content="{DynamicResource Loc_Remove}" Command="{Binding RemoveWhitelistCommand}" CommandParameter="{Binding SelectedItem, ElementName=ListWhitelist}" Background="#e74c3c" Foreground="White" Padding="10,5" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand"/>
+                            <Button Content="{DynamicResource Loc_AddPlayer}" Command="{Binding AddWhitelistCommand}" Background="#2ecc71" Foreground="White" Padding="10,5" BorderThickness="0" Cursor="Hand"/>
                         </StackPanel>
-
-                        <DataGrid x:Name="ListWhitelist" ItemsSource="{Binding WhitelistedPlayers}" AutoGenerateColumns="False" IsReadOnly="True" Background="#34495e" RowBackground="#34495e" Foreground="White" HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None">
+                        <DataGrid x:Name="ListWhitelist" ItemsSource="{Binding WhitelistedPlayers}" AutoGenerateColumns="False" IsReadOnly="True" 
+                                  Background="{DynamicResource SecondaryBrush}" RowBackground="{DynamicResource SecondaryBrush}" 
+                                  Foreground="White" HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None">
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridColumnHeader">
-                                    <Setter Property="Background" Value="#2c3e50"/>
+                                    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
                                     <Setter Property="Foreground" Value="#bdc3c7"/>
                                     <Setter Property="Padding" Value="5"/>
                                 </Style>
@@ -254,24 +231,24 @@
                                 </Style>
                             </DataGrid.Resources>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Pseudo" Binding="{Binding Name}" Width="*"/>
-                                <DataGridTextColumn Header="UUID" Binding="{Binding Uuid}" Width="2*"/>
+                                <DataGridTextColumn Header="{DynamicResource Loc_Nickname}" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="{DynamicResource Loc_UUID}" Binding="{Binding Uuid}" Width="2*"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </DockPanel>
 
                     <DockPanel Grid.Column="2">
-                        <TextBlock Text="OPÉRATEURS (ADMINS)" DockPanel.Dock="Top" Foreground="#f1c40f" FontWeight="Bold" Margin="0,0,0,5"/>
-
+                        <TextBlock Text="{DynamicResource Loc_Operators}" DockPanel.Dock="Top" Foreground="#f1c40f" FontWeight="Bold" Margin="0,0,0,5"/>
                         <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-                            <Button Content="Retirer OP" Command="{Binding RemoveOpCommand}" CommandParameter="{Binding SelectedItem, ElementName=ListOps}" Background="#e74c3c" Foreground="White" Padding="10,5" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand"/>
-                            <Button Content="+ Ajouter OP" Command="{Binding AddOpCommand}" Background="#f1c40f" Foreground="Black" Padding="10,5" BorderThickness="0" Cursor="Hand"/>
+                            <Button Content="{DynamicResource Loc_RemoveOp}" Command="{Binding RemoveOpCommand}" CommandParameter="{Binding SelectedItem, ElementName=ListOps}" Background="#e74c3c" Foreground="White" Padding="10,5" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand"/>
+                            <Button Content="{DynamicResource Loc_AddOp}" Command="{Binding AddOpCommand}" Background="#f1c40f" Foreground="Black" Padding="10,5" BorderThickness="0" Cursor="Hand"/>
                         </StackPanel>
-
-                        <DataGrid x:Name="ListOps" ItemsSource="{Binding OpPlayers}" AutoGenerateColumns="False" IsReadOnly="True" Background="#34495e" RowBackground="#34495e" Foreground="White" HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None">
+                        <DataGrid x:Name="ListOps" ItemsSource="{Binding OpPlayers}" AutoGenerateColumns="False" IsReadOnly="True" 
+                                  Background="{DynamicResource SecondaryBrush}" RowBackground="{DynamicResource SecondaryBrush}" 
+                                  Foreground="White" HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None">
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridColumnHeader">
-                                    <Setter Property="Background" Value="#2c3e50"/>
+                                    <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
                                     <Setter Property="Foreground" Value="#bdc3c7"/>
                                     <Setter Property="Padding" Value="5"/>
                                 </Style>
@@ -280,22 +257,20 @@
                                 </Style>
                             </DataGrid.Resources>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Pseudo" Binding="{Binding Name}" Width="*"/>
-                                <DataGridTextColumn Header="Niveau" Binding="{Binding Level}" Width="50"/>
+                                <DataGridTextColumn Header="{DynamicResource Loc_Nickname}" Binding="{Binding Name}" Width="*"/>
+                                <DataGridTextColumn Header="{DynamicResource Loc_Level}" Binding="{Binding Level}" Width="50"/>
                             </DataGrid.Columns>
                         </DataGrid>
                     </DockPanel>
                 </Grid>
             </TabItem>
-
         </TabControl>
 
-        <Border Grid.Row="2" Padding="20" Background="#2c3e50">
+        <Border Grid.Row="2" Padding="20" Background="{DynamicResource PrimaryBrush}">
             <Grid>
-                <Button Command="{Binding DeleteCommand}" Content="Supprimer le Profil" HorizontalAlignment="Left" Background="#c0392b" Foreground="White" Padding="15,8" BorderThickness="0" Cursor="Hand"/>
-                <Button Command="{Binding SaveCommand}" Content="Enregistrer les Modifications" HorizontalAlignment="Right" Background="#27ae60" Foreground="White" Padding="15,8" BorderThickness="0" FontWeight="Bold" Cursor="Hand"/>
+                <Button Command="{Binding DeleteCommand}" Content="{DynamicResource Loc_DeleteProfile}" HorizontalAlignment="Left" Background="#c0392b" Foreground="White" Padding="15,8" BorderThickness="0" Cursor="Hand"/>
+                <Button Command="{Binding SaveCommand}" Content="{DynamicResource Loc_SaveChanges}" HorizontalAlignment="Right" Background="#27ae60" Foreground="White" Padding="15,8" BorderThickness="0" FontWeight="Bold" Cursor="Hand"/>
             </Grid>
         </Border>
-
     </Grid>
 </UserControl>

@@ -1,4 +1,6 @@
-﻿using Minecraft_Server_Manager.ViewModels;
+﻿using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.Utils;
+using Minecraft_Server_Manager.ViewModels;
 using System.ComponentModel;
 using System.Windows;
 
@@ -7,11 +9,19 @@ namespace Minecraft_Server_Manager
     public partial class MainWindow : Window
     {
         private NotifyIcon _notifyIcon;
+        private ToolStripMenuItem _exitMenuItem;
         private bool _isReallyExiting = false;
         private bool _isCleanedUp = false;
         public MainWindow()
         {
             InitializeComponent();
+
+            ConfigManager.Load();
+            var lang = ConfigManager.Settings.Language;
+            var dict = new ResourceDictionary();
+            dict.Source = new Uri($"pack://application:,,,/Resources/Lang/{lang}.xaml", UriKind.Absolute);
+            System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
+
             InitializeSystemTray();
             this.DataContext = new MainViewModel();
         }
@@ -42,19 +52,34 @@ namespace Minecraft_Server_Manager
             }
 
             _notifyIcon.Visible = true;
-            _notifyIcon.Text = "Minecraft Server Manager (Double-clic pour ouvrir)";
+            _notifyIcon.Text = ResourceHelper.GetString("Loc_TrayTooltip");
 
             _notifyIcon.DoubleClick += (s, e) => ShowWindow();
 
             var contextMenu = new ContextMenuStrip();
-            var exitItem = new ToolStripMenuItem("Quitter définitivement");
-            exitItem.Click += (s, e) =>
+            _exitMenuItem = new ToolStripMenuItem(ResourceHelper.GetString("Loc_TrayExit"));
+            _exitMenuItem.Click += (s, e) =>
             {
                 _isReallyExiting = true;
                 this.Close();
             };
-            contextMenu.Items.Add(exitItem);
+            contextMenu.Items.Add(_exitMenuItem);
             _notifyIcon.ContextMenuStrip = contextMenu;
+        }
+
+        public void UpdateTrayTexts()
+        {
+            if (_notifyIcon != null)
+            {
+                string tooltip = ResourceHelper.GetString("Loc_TrayTooltip");
+                if (tooltip.Length >= 63) tooltip = tooltip.Substring(0, 60) + "...";
+                _notifyIcon.Text = tooltip;
+            }
+
+            if (_exitMenuItem != null)
+            {
+                _exitMenuItem.Text = ResourceHelper.GetString("Loc_TrayExit");
+            }
         }
 
         private void ShowWindow()
@@ -72,7 +97,10 @@ namespace Minecraft_Server_Manager
                 e.Cancel = true;
                 this.Hide();
 
-                _notifyIcon.ShowBalloonTip(1000, "Manager en arrière-plan", "Les serveurs continuent de tourner. Clic droit sur l'icône pour quitter.", ToolTipIcon.Info);
+                _notifyIcon.ShowBalloonTip(1000,
+                    ResourceHelper.GetString("Loc_TrayBackgroundTitle"),
+                    ResourceHelper.GetString("Loc_TrayBackgroundMsg"),
+                    ToolTipIcon.Info);
                 return;
             }
 
@@ -82,7 +110,10 @@ namespace Minecraft_Server_Manager
 
                 this.Hide();
 
-                _notifyIcon.ShowBalloonTip(2500, "Fermeture en cours...", "Arrêt propre des serveurs Minecraft...\nVeuillez patienter.", ToolTipIcon.Info);
+                _notifyIcon.ShowBalloonTip(2500,
+                    ResourceHelper.GetString("Loc_TrayClosingTitle"),
+                    ResourceHelper.GetString("Loc_TrayClosingMsg"),
+                    ToolTipIcon.Info);
 
                 if (this.DataContext is MainViewModel vm)
                 {

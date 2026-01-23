@@ -11,6 +11,10 @@
     <Window.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis"/>
 
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
+        
         <DataTemplate DataType="{x:Type vm:HomeViewModel}">
             <views:HomeView />
         </DataTemplate>

@@ -1,0 +1,154 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
+
+    <sys:String x:Key="Loc_ClientConfig">Configuración del cliente</sys:String>
+    <sys:String x:Key="Loc_Dashboard">Panel de control</sys:String>
+    <sys:String x:Key="Loc_Curseforge">Curseforge</sys:String>
+    <sys:String x:Key="Loc_MyServers">MIS SERVIDORES</sys:String>
+    <sys:String x:Key="Loc_AddServer">+ Añadir servidor</sys:String>
+
+    <sys:String x:Key="Loc_GlobalSettings">Configuración Global</sys:String>
+    <sys:String x:Key="Loc_InstallFolder">Carpeta de instalación predeterminada</sys:String>
+    <sys:String x:Key="Loc_DefaultServerConfig">Configuración predeterminada del servidor</sys:String>
+    <sys:String x:Key="Loc_DefaultConfigDesc">Estos ajustes se aplicarán a cada nuevo servidor creado.</sys:String>
+    <sys:String x:Key="Loc_RamAllocation">Asignación de RAM (Memoria)</sys:String>
+    <sys:String x:Key="Loc_Appearance">Apariencia</sys:String>
+    <sys:String x:Key="Loc_Language">Langue / Language</sys:String>
+    <sys:String x:Key="Loc_Maintenance">Mantenimiento</sys:String>
+    <sys:String x:Key="Loc_MaintenanceDesc">Si tienes problemas de visualización con CurseForge.</sys:String>
+    <sys:String x:Key="Loc_ClearCache">Borrar caché del navegador</sys:String>
+
+    <sys:String x:Key="Loc_ModpackDownloading">Descargando e instalando Modpack... Por favor, espere.</sys:String>
+    <sys:String x:Key="Loc_BrowserLoading">Cargando navegador...</sys:String>
+    <sys:String x:Key="Loc_ServerDownloading">Descargando archivos del servidor...</sys:String>
+
+    <sys:String x:Key="Loc_Offline">DESCONECTADO</sys:String>
+    <sys:String x:Key="Loc_Online">EN LÍNEA</sys:String>
+    <sys:String x:Key="Loc_PlayersSuffix">Jugadores</sys:String>
+
+    <sys:String x:Key="Loc_Edit">Editar</sys:String>
+    <sys:String x:Key="Loc_ChangeIconTooltip">Cambiar icono</sys:String>
+    <sys:String x:Key="Loc_ServerEdition">EDICIÓN DEL SERVIDOR</sys:String>
+
+    <sys:String x:Key="Loc_TabConfiguration">Configuración</sys:String>
+    <sys:String x:Key="Loc_JavaVersion">VERSIÓN DE JAVA</sys:String>
+    <sys:String x:Key="Loc_LaunchFile">ARCHIVO DE INICIO (.JAR)</sys:String>
+    <sys:String x:Key="Loc_JvmArgs">ARGUMENTOS JVM (RAM)</sys:String>
+    <sys:String x:Key="Loc_ApplyAikar">🗲 Aplicar Flags de Aikar</sys:String>
+    <sys:String x:Key="Loc_DiscordWebhook">WEBHOOK DE DISCORD (NOTIFICACIONES)</sys:String>
+    <sys:String x:Key="Loc_AutoRestart">Reinicio Automático</sys:String>
+    <sys:String x:Key="Loc_At">a las</sys:String>
+
+    <sys:String x:Key="Loc_TabProperties">Propiedades del servidor</sys:String>
+    <sys:String x:Key="Loc_AdvancedConfig">CONFIGURACIÓN AVANZADA</sys:String>
+    <sys:String x:Key="Loc_Option">Opción</sys:String>
+    <sys:String x:Key="Loc_Value">Valor</sys:String>
+
+    <sys:String x:Key="Loc_TabPlayersPermissions">Jugadores y Permisos</sys:String>
+    <sys:String x:Key="Loc_Whitelist">LISTA BLANCA</sys:String>
+    <sys:String x:Key="Loc_Remove">Eliminar</sys:String>
+    <sys:String x:Key="Loc_AddPlayer">+ Añadir Jugador</sys:String>
+    <sys:String x:Key="Loc_Nickname">Usuario</sys:String>
+    <sys:String x:Key="Loc_UUID">UUID</sys:String>
+
+    <sys:String x:Key="Loc_Operators">OPERADORES (ADMINS)</sys:String>
+    <sys:String x:Key="Loc_RemoveOp">Quitar OP</sys:String>
+    <sys:String x:Key="Loc_AddOp">+ Añadir OP</sys:String>
+    <sys:String x:Key="Loc_Level">Nivel</sys:String>
+
+    <sys:String x:Key="Loc_DeleteProfile">Eliminar Perfil</sys:String>
+    <sys:String x:Key="Loc_SaveChanges">Guardar Cambios</sys:String>
+
+    <sys:String x:Key="Loc_UptimePrefix">- Tiempo activ.:</sys:String>
+    <sys:String x:Key="Loc_Send">Enviar</sys:String>
+    <sys:String x:Key="Loc_LiveMetrics">MÉTRICAS EN VIVO</sys:String>
+    <sys:String x:Key="Loc_ConnectedPlayers">Jugadores Conectados:</sys:String>
+    <sys:String x:Key="Loc_NoPlayers">(Ningún jugador)</sys:String>
+    <sys:String x:Key="Loc_PlayersTitle">JUGADORES</sys:String>
+    <sys:String x:Key="Loc_UptimeTitle">TIEMPO ACTIV.</sys:String>
+    <sys:String x:Key="Loc_Cpu">CPU</sys:String>
+    <sys:String x:Key="Loc_Usage">Uso</sys:String>
+    <sys:String x:Key="Loc_RamTitle">RAM</sys:String>
+    <sys:String x:Key="Loc_Allocated">Asignada</sys:String>
+
+    <sys:String x:Key="Loc_SelectRootFolder">Seleccione la carpeta raíz de su servidor Minecraft</sys:String>
+    <sys:String x:Key="Loc_InvalidFolderTitle">Carpeta no válida</sys:String>
+    <sys:String x:Key="Loc_InvalidFolderMsg">Esta carpeta no parece contener un servidor Minecraft válido.\n\nArchivos faltantes: server.properties y/o eula.txt</sys:String>
+    <sys:String x:Key="Loc_ErrorSave">Error al guardar el perfil: {0}</sys:String>
+    <sys:String x:Key="Loc_ErrorDelete">Error al eliminar: {0}</sys:String>
+
+    <sys:String x:Key="Loc_ConfirmDeleteTitle">Confirmación de eliminación</sys:String>
+    <sys:String x:Key="Loc_ConfirmDeleteMsg">¿Está seguro de que desea eliminar el perfil "{0}"?\n\nEsto eliminará la configuración del Manager, pero NO tocará los archivos del servidor.</sys:String>
+    <sys:String x:Key="Loc_JavaDefault">Java (Predeterminado del Sistema)</sys:String>
+    <sys:String x:Key="Loc_JavaManual">Manual</sys:String>
+    <sys:String x:Key="Loc_JavaCustom">Personalizado</sys:String>
+    <sys:String x:Key="Loc_SelectJavaTitle">Seleccionar ejecutable Java (bin/java.exe)</sys:String>
+    <sys:String x:Key="Loc_SelectJarTitle">Seleccionar archivo de inicio del servidor</sys:String>
+    <sys:String x:Key="Loc_SelectIconTitle">Elegir un icono para el servidor</sys:String>
+    <sys:String x:Key="Loc_ErrorImageLoad">Error al cargar la imagen: {0}</sys:String>
+
+    <sys:String x:Key="Loc_AikarTitle">Optimización Aplicada</sys:String>
+    <sys:String x:Key="Loc_AikarMsg">¡Se han aplicado los flags de optimización Aikar (8GB)!\n\nNota: Si su PC tiene menos de 16GB de RAM, reduzca los valores -Xms y -Xmx manualmente.</sys:String>
+
+    <sys:String x:Key="Loc_MissingUrlTitle">URL Faltante</sys:String>
+    <sys:String x:Key="Loc_MissingUrlMsg">Por favor, introduzca primero una URL de Webhook válida.</sys:String>
+    <sys:String x:Key="Loc_TestSentTitle">Prueba Enviada</sys:String>
+    <sys:String x:Key="Loc_TestSentMsg">Se ha enviado una notificación de prueba a Discord.</sys:String>
+
+    <sys:String x:Key="Loc_InputWhitelistTitle">Añadir a Lista Blanca</sys:String>
+    <sys:String x:Key="Loc_InputWhitelistMsg">Introduzca el nombre del jugador a añadir:</sys:String>
+    <sys:String x:Key="Loc_PlayerNotFound">Jugador no encontrado (verifique el nombre).</sys:String>
+    <sys:String x:Key="Loc_InputOpTitle">Añadir Operador</sys:String>
+    <sys:String x:Key="Loc_InputOpMsg">Introduzca el nombre del jugador para hacerlo OP (Admin):</sys:String>
+    <sys:String x:Key="Loc_Error">Error</sys:String>
+
+    <sys:String x:Key="Loc_ServerStartedTitle">Servidor Iniciado</sys:String>
+    <sys:String x:Key="Loc_ServerStartedMsg">¡El servidor **{0}** está en línea!</sys:String>
+    <sys:String x:Key="Loc_KickReason">El servidor ha sido detenido</sys:String>
+    <sys:String x:Key="Loc_RestartTitle">¡Reiniciando!</sys:String>
+    <sys:String x:Key="Loc_RestartMsg">El servidor se reiniciará en 10 segundos.</sys:String>
+    <sys:String x:Key="Loc_RestartScheduledTitle">Reinicio Programado</sys:String>
+    <sys:String x:Key="Loc_RestartScheduledMsg">El servidor se reinicia por mantenimiento...</sys:String>
+    <sys:String x:Key="Loc_StopManualTitle">Servidor Detenido</sys:String>
+    <sys:String x:Key="Loc_StopManualMsg">El servidor fue detenido manualmente.</sys:String>
+    <sys:String x:Key="Loc_CrashTitle">¡CRASH DETECTADO!</sys:String>
+    <sys:String x:Key="Loc_CrashMsg">El servidor se detuvo inesperadamente (Código: {0}).\nIntentando reiniciar en 10s...</sys:String>
+    <sys:String x:Key="Loc_BackupStart">>>> Inicializando copia de seguridad...</sys:String>
+    <sys:String x:Key="Loc_BackupSuccess">>>> ÉXITO: Copia creada: {0}</sys:String>
+    <sys:String x:Key="Loc_BackupError">>>> [ERROR] Fallo en la copia: {0}</sys:String>
+
+    <sys:String x:Key="Loc_CacheEmpty">La caché ya está vacía.</sys:String>
+    <sys:String x:Key="Loc_ConfirmCacheTitle">Borrar Caché</sys:String>
+    <sys:String x:Key="Loc_ConfirmCacheMsg">¿Seguro que desea borrar la caché del navegador CurseForge?\nEsto cerrará su sesión en el sitio.</sys:String>
+    <sys:String x:Key="Loc_Success">Éxito</sys:String>
+    <sys:String x:Key="Loc_CacheCleared">¡Caché borrada con éxito!</sys:String>
+    <sys:String x:Key="Loc_CacheError">No se pudo borrar la caché.\nAsegúrese de que la pestaña CurseForge no esté abierta.\n\nError: {0}</sys:String>
+
+    <sys:String x:Key="Loc_TrayTooltip">Minecraft Server Manager (Doble clic para abrir)</sys:String>
+    <sys:String x:Key="Loc_TrayExit">Salir definitivamente</sys:String>
+    <sys:String x:Key="Loc_TrayBackgroundTitle">Manager en segundo plano</sys:String>
+    <sys:String x:Key="Loc_TrayBackgroundMsg">Los servidores siguen funcionando. Clic derecho en el icono para salir.</sys:String>
+    <sys:String x:Key="Loc_TrayClosingTitle">Cerrando...</sys:String>
+    <sys:String x:Key="Loc_TrayClosingMsg">Deteniendo servidores Minecraft correctamente...\nPor favor, espere.</sys:String>
+
+    <sys:String x:Key="Loc_LogStart">>>> Iniciando el servidor...</sys:String>
+    <sys:String x:Key="Loc_LogEula">>>> EULA aceptado automáticamente (eula=true).</sys:String>
+    <sys:String x:Key="Loc_LogStopRequested">>>> Solicitud de parada del servidor...</sys:String>
+    <sys:String x:Key="Loc_LogAutoRestartScheduled">>>> [SCHEDULER] Reinicio automático programado...</sys:String>
+    <sys:String x:Key="Loc_LogKickAll">>>> Expulsando a todos los jugadores...</sys:String>
+    <sys:String x:Key="Loc_LogServerStopped">>>> El servidor se ha detenido.</sys:String>
+    <sys:String x:Key="Loc_LogRestartingPause">>>> [SCHEDULER] Reiniciando (Pausa 5s)...</sys:String>
+
+    <sys:String x:Key="Loc_LogCrashDetected">[WARN] Parada no planificada detectada (Código: {0}).</sys:String>
+    <sys:String x:Key="Loc_LogRestartIn10s">>>> Reinicio automático en 10 segundos...</sys:String>
+    <sys:String x:Key="Loc_LogRetryStart">>>> Intentando reinicio automático...</sys:String>
+
+    <sys:String x:Key="Loc_LogDeleteOldBackups">>>> [MANTENIMIENTO] Eliminando {0} copia(s) antigua(s)...</sys:String>
+    <sys:String x:Key="Loc_LogBackupCleanupError">[WARN] Error al limpiar copias de seguridad: {0}</sys:String>
+    <sys:String x:Key="Loc_LogSaveAll">>>> Guardando mundo en disco (save-all)...</sys:String>
+    <sys:String x:Key="Loc_LogZipping">>>> Comprimiendo archivos...</sys:String>
+    <sys:String x:Key="Loc_LogSaveOn">>>> Escritura en disco reactivada (save-on).</sys:String>
+    <sys:String x:Key="Loc_SelectInstallFolderTitle">Seleccione la carpeta de instalación predeterminada</sys:String>
+
+</ResourceDictionary>

@@ -11,8 +11,24 @@ namespace Minecraft_Server_Manager.Models
 {
     public class ServerProfile : INotifyPropertyChanged
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        #region Fields
         private string _displayName;
+        private string _iconBase64;
+        private bool _autoRestartEnabled;
+        private string _autoRestartTime = "04:00";
+        private string _discordWebhookUrl;
+        private int _playerCount = 0;
+        private bool _isRunning;
+        #endregion
+
+        #region Events
+        public event Action<string> LogReceived;
+        #endregion
+
+        #region Persistent Properties (Saved to JSON)
+
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
         public string DisplayName
         {
             get => _displayName;
@@ -25,11 +41,12 @@ namespace Minecraft_Server_Manager.Models
                 }
             }
         }
+
         public string FolderPath { get; set; }
         public string JdkPath { get; set; }
         public string JvmArguments { get; set; }
         public string JarName { get; set; } = "server.jar";
-        private string _iconBase64;
+
         public string IconBase64
         {
             get => _iconBase64;
@@ -43,30 +60,41 @@ namespace Minecraft_Server_Manager.Models
                 }
             }
         }
-        public bool IsRunning { get; set; }
 
-        private bool _autoRestartEnabled;
+        public bool IsRunning
+        {
+            get => _isRunning;
+            set
+            {
+                if (_isRunning != value)
+                {
+                    _isRunning = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public bool AutoRestartEnabled
         {
             get => _autoRestartEnabled;
             set { _autoRestartEnabled = value; OnPropertyChanged(); }
         }
 
-        private string _autoRestartTime = "04:00";
         public string AutoRestartTime
         {
             get => _autoRestartTime;
             set { _autoRestartTime = value; OnPropertyChanged(); }
         }
 
-        private string _discordWebhookUrl;
         public string DiscordWebhookUrl
         {
             get => _discordWebhookUrl;
             set { _discordWebhookUrl = value; OnPropertyChanged(); }
         }
+        #endregion
 
-        private int _playerCount = 0;
+        #region Runtime Properties (Ignored in JSON)
+
         [JsonIgnore]
         public int PlayerCount
         {
@@ -93,6 +121,9 @@ namespace Minecraft_Server_Manager.Models
         [JsonIgnore]
         public Process ServerProcess { get; set; }
 
+        /// <summary>
+        /// Génère l'image WPF à partir de la chaîne Base64 stockée.
+        /// </summary>
         [JsonIgnore]
         public ImageSource ServerIcon
         {
@@ -117,18 +148,30 @@ namespace Minecraft_Server_Manager.Models
                 }
             }
         }
+        #endregion
 
-        public event Action<string> LogReceived;
-
+        #region Methods
+        /// <summary>
+        /// Ajoute un log au cache et déclenche l'événement pour l'UI.
+        /// </summary>
         public void AddLog(string data)
         {
             if (string.IsNullOrEmpty(data)) return;
-            CachedLogs.AppendLine(data);
+
+            lock (CachedLogs)
+            {
+                CachedLogs.AppendLine(data);
+            }
+
             LogReceived?.Invoke(data);
         }
+        #endregion
 
+        #region INotifyPropertyChanged Implementation
         public event PropertyChangedEventHandler PropertyChanged;
+
         protected void OnPropertyChanged([CallerMemberName] string name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        #endregion
     }
 }

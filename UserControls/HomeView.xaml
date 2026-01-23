@@ -1,15 +1,15 @@
 ﻿<UserControl x:Class="Minecraft_Server_Manager.UserControls.HomeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="800">
 
-    <Grid Background="#2c3e50">
+    <Grid Background="{DynamicResource PrimaryBrush}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="20">
-                <TextBlock Text="TABLEAU DE BORD" Foreground="White" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+                <TextBlock Text="{DynamicResource Loc_Dashboard}" Foreground="White" FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
 
                 <ItemsControl ItemsSource="{Binding Servers}">
                     <ItemsControl.ItemsPanel>
@@ -17,16 +17,13 @@
                             <WrapPanel Orientation="Horizontal"/>
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
-
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
                             <Button Command="{Binding DataContext.SelectServerCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                    CommandParameter="{Binding}"
-                                    Width="220" Height="140" 
-                                    Margin="0,0,20,20"
-                                    Background="#34495e" 
-                                    BorderThickness="0"
-                                    Cursor="Hand">
+                                    CommandParameter="{Binding}" 
+                                    Width="220" Height="140" Margin="0,0,20,20" 
+                                    Background="{DynamicResource SecondaryBrush}" 
+                                    BorderThickness="0" Cursor="Hand">
                                 <Button.Template>
                                     <ControlTemplate TargetType="Button">
                                         <Border x:Name="CardBorder" Background="{TemplateBinding Background}" CornerRadius="8">
@@ -37,7 +34,7 @@
                                         </Border>
                                         <ControlTemplate.Triggers>
                                             <Trigger Property="IsMouseOver" Value="True">
-                                                <Setter TargetName="CardBorder" Property="Background" Value="#3e5871"/>
+                                                <Setter Property="Opacity" Value="0.9"/>
                                                 <Setter TargetName="CardBorder" Property="RenderTransform">
                                                     <Setter.Value>
                                                         <ScaleTransform ScaleX="1.02" ScaleY="1.02"/>
@@ -66,7 +63,6 @@
                                     </StackPanel>
 
                                     <StackPanel Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,15,0,0">
-
                                         <Ellipse Width="12" Height="12" Margin="0,0,8,0">
                                             <Ellipse.Style>
                                                 <Style TargetType="Ellipse">
@@ -79,27 +75,25 @@
                                                 </Style>
                                             </Ellipse.Style>
                                         </Ellipse>
-
                                         <TextBlock FontSize="12" FontWeight="SemiBold">
                                             <TextBlock.Style>
                                                 <Style TargetType="TextBlock">
-                                                    <Setter Property="Text" Value="HORS LIGNE"/>
+                                                    <Setter Property="Text" Value="{DynamicResource Loc_Offline}"/>
                                                     <Setter Property="Foreground" Value="#e74c3c"/>
                                                     <Style.Triggers>
                                                         <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                                            <Setter Property="Text" Value="EN LIGNE"/>
+                                                            <Setter Property="Text" Value="{DynamicResource Loc_Online}"/>
                                                             <Setter Property="Foreground" Value="#2ecc71"/>
                                                         </DataTrigger>
                                                     </Style.Triggers>
                                                 </Style>
                                             </TextBlock.Style>
                                         </TextBlock>
-
                                     </StackPanel>
 
                                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
                                         <TextBlock Text="{Binding PlayerCount}" Foreground="#3498db" FontWeight="Bold" FontSize="18"/>
-                                        <TextBlock Text=" Joueurs" FontSize="16" Foreground="#95a5a6" VerticalAlignment="Bottom" Margin="5,0,0,2"/>
+                                        <TextBlock Text="{DynamicResource Loc_PlayersSuffix}" FontSize="16" Foreground="#95a5a6" VerticalAlignment="Bottom" Margin="5,0,0,2"/>
                                     </StackPanel>
                                 </Grid>
                             </Button>
