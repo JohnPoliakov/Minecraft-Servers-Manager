@@ -3,6 +3,18 @@
   "WorkspaceRootPath": "E:\\Minecraft-Server-Manager\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|e:\\minecraft-server-manager\\viewmodels\\servermonitorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|solutionrelative:viewmodels\\servermonitorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|e:\\minecraft-server-manager\\usercontrols\\servermonitor.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|solutionrelative:usercontrols\\servermonitor.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|e:\\minecraft-server-manager\\viewmodels\\servereditorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|solutionrelative:viewmodels\\servereditorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|e:\\minecraft-server-manager\\usercontrols\\homeview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|solutionrelative:usercontrols\\homeview.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
@@ -13,14 +25,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|e:\\minecraft-server-manager\\models\\serverprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|solutionrelative:models\\serverprofile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|e:\\minecraft-server-manager\\usercontrols\\servermonitor.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|solutionrelative:usercontrols\\servermonitor.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|e:\\minecraft-server-manager\\viewmodels\\servermonitorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|solutionrelative:viewmodels\\servermonitorviewmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{6C7CBCB1-661B-464A-9F42-F3C2BC7ED3D8}|Minecraft Server Manager.csproj|e:\\minecraft-server-manager\\usercontrols\\curseforgeview.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -43,6 +47,19 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
+              "Title": "ServerEditorViewModel.cs",
+              "DocumentMoniker": "E:\\Minecraft-Server-Manager\\ViewModels\\ServerEditorViewModel.cs",
+              "RelativeDocumentMoniker": "ViewModels\\ServerEditorViewModel.cs",
+              "ToolTip": "E:\\Minecraft-Server-Manager\\ViewModels\\ServerEditorViewModel.cs",
+              "RelativeToolTip": "ViewModels\\ServerEditorViewModel.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-22T21:14:05.031Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "ServerProfile.cs",
               "DocumentMoniker": "E:\\Minecraft-Server-Manager\\Models\\ServerProfile.cs",
               "RelativeDocumentMoniker": "Models\\ServerProfile.cs",
@@ -55,19 +72,18 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "SidebarView.xaml",
               "DocumentMoniker": "E:\\Minecraft-Server-Manager\\UserControls\\SidebarView.xaml",
               "RelativeDocumentMoniker": "UserControls\\SidebarView.xaml",
               "ToolTip": "E:\\Minecraft-Server-Manager\\UserControls\\SidebarView.xaml",
               "RelativeToolTip": "UserControls\\SidebarView.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2026-01-22T17:42:57.941Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-01-22T17:42:57.941Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "CurseForgeView.xaml",
               "DocumentMoniker": "E:\\Minecraft-Server-Manager\\UserControls\\CurseForgeView.xaml",
               "RelativeDocumentMoniker": "UserControls\\CurseForgeView.xaml",
@@ -78,7 +94,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "CurseForgeView.xaml.cs",
               "DocumentMoniker": "E:\\Minecraft-Server-Manager\\UserControls\\CurseForgeView.xaml.cs",
               "RelativeDocumentMoniker": "UserControls\\CurseForgeView.xaml.cs",
@@ -91,20 +107,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 0,
               "Title": "ServerMonitorViewModel.cs",
               "DocumentMoniker": "E:\\Minecraft-Server-Manager\\ViewModels\\ServerMonitorViewModel.cs",
               "RelativeDocumentMoniker": "ViewModels\\ServerMonitorViewModel.cs",
               "ToolTip": "E:\\Minecraft-Server-Manager\\ViewModels\\ServerMonitorViewModel.cs",
               "RelativeToolTip": "ViewModels\\ServerMonitorViewModel.cs",
-              "ViewState": "AgIAACkAAAAAAAAAAAAwwEMAAAArAAAAAAAAAA==",
+              "ViewState": "AgIAAFQCAAAAAAAAAAAmwGsCAABRAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-22T10:13:50.749Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 3,
               "Title": "HomeView.xaml",
               "DocumentMoniker": "E:\\Minecraft-Server-Manager\\UserControls\\HomeView.xaml",
               "RelativeDocumentMoniker": "UserControls\\HomeView.xaml",
@@ -116,13 +132,13 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": "ServerMonitor.xaml.cs",
               "DocumentMoniker": "E:\\Minecraft-Server-Manager\\UserControls\\ServerMonitor.xaml.cs",
               "RelativeDocumentMoniker": "UserControls\\ServerMonitor.xaml.cs",
               "ToolTip": "E:\\Minecraft-Server-Manager\\UserControls\\ServerMonitor.xaml.cs",
               "RelativeToolTip": "UserControls\\ServerMonitor.xaml.cs",
-              "ViewState": "AgIAADgAAAAAAAAAAAAIwFEAAAA7AAAAAAAAAA==",
+              "ViewState": "AgIAADYAAAAAAAAAAAAvwFMAAAAoAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-01-22T09:32:50.451Z",
               "EditorCaption": ""

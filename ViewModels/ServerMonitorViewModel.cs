@@ -2,6 +2,7 @@
 using LiveCharts.Wpf;
 using Minecraft_Server_Manager.Models;
 using Minecraft_Server_Manager.Services;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -18,6 +19,14 @@ namespace Minecraft_Server_Manager.ViewModels
 {
     public class ServerMonitorViewModel : INotifyPropertyChanged
     {
+        private static readonly Regex _loginRegex = new Regex(
+        @":\s+([a-zA-Z0-9_]+)\[.*\]\s+logged in with",
+        RegexOptions.Compiled);
+
+        private static readonly Regex _logoutRegex = new Regex(
+            @":\s+([a-zA-Z0-9_]+).*\s+left the game",
+            RegexOptions.Compiled);
+
         private ServerProfile _serverProfile;
 
         public event Action<string> LogEntryReceived;
@@ -218,7 +227,7 @@ namespace Minecraft_Server_Manager.ViewModels
             };
         }
 
-        private void UpdateStats(object sender, EventArgs e)
+        private async void UpdateStats(object sender, EventArgs e)
         {
             if (_serverProfile.ServerProcess == null || _serverProfile.ServerProcess.HasExited)
             {
@@ -230,7 +239,10 @@ namespace Minecraft_Server_Manager.ViewModels
 
             if (CpuSeries == null || RamSeries == null) return;
 
-            try
+            await Task.Run(() =>
+            {
+
+                try
             {
                 _serverProfile.ServerProcess.Refresh();
 
@@ -264,6 +276,8 @@ namespace Minecraft_Server_Manager.ViewModels
                 RamDetailText = $"{ramUsedMb:F0} / {_maxRamMb} MB";
             }
             catch { }
+
+            });
 
             if (_serverProfile.AutoRestartEnabled && IsRunning && !_isRestarting)
             {
@@ -327,7 +341,7 @@ namespace Minecraft_Server_Manager.ViewModels
                 CommandInput = "";
             }
         }
-        private void StartServer()
+        private async void StartServer()
         {
             if (_serverProfile.ServerProcess != null && !_serverProfile.ServerProcess.HasExited) return;
 
@@ -336,7 +350,10 @@ namespace Minecraft_Server_Manager.ViewModels
             SetBusyState(true);
             _serverProfile.AddLog(">>> Démarrage du serveur...\n");
 
-            try
+            await Task.Run(() =>
+            {
+
+                try
             {
 
                 string eulaPath = Path.Combine(_serverProfile.FolderPath, "eula.txt");
@@ -387,7 +404,13 @@ namespace Minecraft_Server_Manager.ViewModels
 
                 _serverProfile.ServerProcess.Start();
 
-                _serverProfile.IsRunning = true;
+                try
+                {
+                    _serverProfile.ServerProcess.PriorityClass = ProcessPriorityClass.High;
+                }
+                catch {  }
+
+                    _serverProfile.IsRunning = true;
                 OnPropertyChanged(nameof(IsRunning));
                 OnPropertyChanged(nameof(StatusColor));
 
@@ -413,6 +436,7 @@ namespace Minecraft_Server_Manager.ViewModels
                 IsRunning = false;
                 SetBusyState(false);
             }
+            });
         }
 
 
@@ -555,7 +579,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
                 if (string.IsNullOrEmpty(text)) return;
 
-                var joinMatch = Regex.Match(text, @":\s+([a-zA-Z0-9_]+)\[.*\]\s+logged in with");
+                var joinMatch = _loginRegex.Match(text);
 
                 if (joinMatch.Success)
                 {
@@ -568,7 +592,7 @@ namespace Minecraft_Server_Manager.ViewModels
                     }
                 }
 
-                var leftMatch = Regex.Match(text, @":\s+([a-zA-Z0-9_]+).*\s+left the game");
+                var leftMatch = _logoutRegex.Match(text);
 
                 if (leftMatch.Success)
                 {
@@ -584,7 +608,7 @@ namespace Minecraft_Server_Manager.ViewModels
             });
         }
 
-        private void ExecuteConsoleCommand(object commandObj)
+        private async void ExecuteConsoleCommand(object commandObj)
         {
             string cmd = commandObj as string ?? CommandInput;
             if (string.IsNullOrWhiteSpace(cmd)) return;
@@ -593,7 +617,7 @@ namespace Minecraft_Server_Manager.ViewModels
             _commandHistory.Add(cmd);
             _historyIndex = _commandHistory.Count;
 
-            _serverProfile.ServerProcess.StandardInput.WriteLine(cmd);
+            await _serverProfile.ServerProcess.StandardInput.WriteLineAsync(cmd);
             CommandInput = "";
         }
 

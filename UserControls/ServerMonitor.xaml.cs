@@ -1,7 +1,9 @@
 ﻿using Minecraft_Server_Manager.ViewModels;
+using System.Collections.Concurrent;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace Minecraft_Server_Manager.UserControls
 {
@@ -10,27 +12,63 @@ namespace Minecraft_Server_Manager.UserControls
 
         private ServerMonitorViewModel _currentVm;
 
+        private ConcurrentQueue<string> _logQueue = new ConcurrentQueue<string>();
+        private DispatcherTimer _logUpdateTimer;
+
         public ServerMonitor()
         {
             InitializeComponent();
 
             this.DataContextChanged += OnDataContextChanged;
+
+            _logUpdateTimer = new DispatcherTimer();
+            _logUpdateTimer.Interval = TimeSpan.FromMilliseconds(100);
+            _logUpdateTimer.Tick += ProcessLogQueue;
+            _logUpdateTimer.Start();
+        }
+
+        private void EnqueueLog(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) return;
+            _logQueue.Enqueue(text);
+        }
+
+        private void ProcessLogQueue(object sender, EventArgs e)
+        {
+            if (_logQueue.IsEmpty) return;
+
+            bool shouldScroll = (ConsoleOutput.VerticalOffset + ConsoleOutput.ViewportHeight) >= (ConsoleOutput.ExtentHeight - 10);
+            int batchSize = 0;
+
+            // On traite par paquets (max 50 lignes à la fois pour rester fluide)
+            while (_logQueue.TryDequeue(out string text) && batchSize < 50)
+            {
+                AppendColoredLogInternal(text); // Votre ancienne méthode AppendColoredLog
+                batchSize++;
+            }
+
+            if (shouldScroll)
+            {
+                ConsoleOutput.ScrollToEnd();
+            }
         }
 
         private void OnDataContextChanged(object sender, System.Windows.DependencyPropertyChangedEventArgs e)
         {
             if (_currentVm != null)
             {
-                _currentVm.LogEntryReceived -= AppendColoredLog;
+                _currentVm.LogEntryReceived -= EnqueueLog;
             }
 
             if (e.NewValue is ServerMonitorViewModel vm)
             {
                 _currentVm = vm;
                 LoadInitialLogs(vm.ServerLogs);
-                vm.LogEntryReceived += AppendColoredLog;
+
+                vm.LogEntryReceived += EnqueueLog;
             }
         }
+
 
         private void LoadInitialLogs(string fullLogs)
         {
@@ -41,16 +79,14 @@ namespace Minecraft_Server_Manager.UserControls
             foreach (var line in lines)
             {
                 if (!string.IsNullOrWhiteSpace(line))
-                    AppendColoredLog(line);
+                    AppendColoredLogInternal(line);
             }
             ConsoleOutput.ScrollToEnd();
         }
-        private void AppendColoredLog(string text)
+        private void AppendColoredLogInternal(string text)
         {
             text = text.TrimEnd('\r', '\n');
             if (string.IsNullOrEmpty(text)) return;
-
-            bool isAtBottom = (ConsoleOutput.VerticalOffset + ConsoleOutput.ViewportHeight) >= (ConsoleOutput.ExtentHeight - 5);
 
             Paragraph paragraph = new Paragraph();
 
@@ -84,10 +120,6 @@ namespace Minecraft_Server_Manager.UserControls
                 ConsoleOutput.Document.Blocks.Remove(ConsoleOutput.Document.Blocks.FirstBlock);
             }
 
-            if (isAtBottom)
-            {
-                ConsoleOutput.ScrollToEnd();
-            }
         }
 
         private void CommandInput_TextChanged(object sender, TextChangedEventArgs e)
