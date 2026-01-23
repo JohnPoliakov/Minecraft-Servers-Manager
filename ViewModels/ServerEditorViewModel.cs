@@ -459,6 +459,17 @@ namespace Minecraft_Server_Manager.ViewModels
 
             if (WhitelistedPlayers.Any(p => p.Uuid == player.Uuid)) return;
 
+            if (_serverProfile.IsRunning && _serverProfile.ServerProcess != null && !_serverProfile.ServerProcess.HasExited)
+            {
+                try
+                {
+                    await _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"whitelist add {player.Name}");
+                }
+                catch
+                {
+                }
+            }
+
             WhitelistedPlayers.Add(player);
             SaveList("whitelist.json", WhitelistedPlayers);
         }
@@ -468,16 +479,27 @@ namespace Minecraft_Server_Manager.ViewModels
             string username = Microsoft.VisualBasic.Interaction.InputBox(ResourceHelper.GetString("Loc_InputOpMsg"), ResourceHelper.GetString("Loc_InputOpTitle"));
             if (string.IsNullOrWhiteSpace(username)) return;
 
-            var playerBase = await MojangService.GetPlayerProfileAsync(username);
-            if (playerBase == null)
+            var player = await MojangService.GetPlayerProfileAsync(username);
+            if (player == null)
             {
                 CustomMessageBox.Show(ResourceHelper.GetString("Loc_PlayerNotFound"), ResourceHelper.GetString("Loc_Error"), MessageBoxType.Error);
                 return;
             }
 
-            if (OpPlayers.Any(p => p.Uuid == playerBase.Uuid)) return;
+            if (OpPlayers.Any(p => p.Uuid == player.Uuid)) return;
 
-            var op = new OpPlayer { Name = playerBase.Name, Uuid = playerBase.Uuid, Level = 4, BypassesPlayerLimit = false };
+            if (_serverProfile.IsRunning && _serverProfile.ServerProcess != null && !_serverProfile.ServerProcess.HasExited)
+            {
+                try
+                {
+                    await _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"op {player.Name}");
+                }
+                catch
+                {
+                }
+            }
+
+            var op = new OpPlayer { Name = player.Name, Uuid = player.Uuid, Level = 4, BypassesPlayerLimit = false };
 
             OpPlayers.Add(op);
             SaveList("ops.json", OpPlayers);
@@ -489,6 +511,38 @@ namespace Minecraft_Server_Manager.ViewModels
             {
                 collection.Remove(player);
                 SaveList(fileName, collection);
+
+                if (_serverProfile.IsRunning && _serverProfile.ServerProcess != null && !_serverProfile.ServerProcess.HasExited)
+                {
+                    if (fileName == "ops.json")
+                    {
+                        try
+                        {
+                            if (player is OpPlayer opPlayer)
+                            {
+                                _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"deop {opPlayer.Name}");
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+                    else if (fileName == "whitelist.json")
+                    {
+                        try
+                        {
+                            if (player is OpPlayer opPlayer)
+                            {
+                                _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"whitelist remove {opPlayer.Name}");
+                            }
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+
+
             }
         }
 
