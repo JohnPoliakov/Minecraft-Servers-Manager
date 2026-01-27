@@ -1,4 +1,5 @@
-![alt text](https://github.com/JohnPoliakov/Minecraft-Servers-Manager/blob/master/Resources/MSM.ico "Logo Application")# Minecraft Servers Manager (MSM)
+
+# <img src="https://github.com/JohnPoliakov/Minecraft-Servers-Manager/blob/master/Resources/MSM.ico" alt="Application Icon" width="200"/> Minecraft Servers Manager (MSM)
 
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20WPF-lightgrey.svg)
