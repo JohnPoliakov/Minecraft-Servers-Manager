@@ -33,6 +33,7 @@ Whether you want to run a vanilla server for friends or a heavy modpack from Cur
 * **GUI Editor:** Edit `server.properties`, Whitelist, and Ops without touching text files.
 * **Java Management:** Automatically detects installed Java versions and allows specific Java paths per server.
 * **Optimization:** One-click button to apply **Aikar's Flags** for optimal performance.
+* **Scripting:** Allow you to run your own .bat script to start the server.
 * **Backups:** Built-in backup manager (Create/Delete/Auto-cleanup old backups).
 * **Auto-Restart:** Schedule automatic restarts at specific times.
 * **Discord Webhooks:** Get notifications on Discord when the server starts, stops, or crashes.
