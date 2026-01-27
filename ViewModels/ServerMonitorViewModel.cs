@@ -13,7 +13,6 @@ using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 
 namespace Minecraft_Server_Manager.ViewModels
@@ -771,14 +770,7 @@ namespace Minecraft_Server_Manager.ViewModels
             {
                 try
                 {
-                    byte[] binaryData = Convert.FromBase64String(_serverProfile.IconBase64);
-                    BitmapImage bi = new BitmapImage();
-                    bi.BeginInit();
-                    bi.StreamSource = new MemoryStream(binaryData);
-                    bi.CacheOption = BitmapCacheOption.OnLoad;
-                    bi.EndInit();
-                    bi.Freeze();
-                    ServerIconSource = bi;
+                    ServerIconSource = ResourceHelper.CreateImageFromBase64(_serverProfile.IconBase64);
                 }
                 catch { }
             }

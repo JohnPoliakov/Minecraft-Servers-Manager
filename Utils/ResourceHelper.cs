@@ -1,4 +1,7 @@
-﻿namespace Minecraft_Server_Manager.Utils
+﻿using System.IO;
+using System.Windows.Media.Imaging;
+
+namespace Minecraft_Server_Manager.Utils
 {
     public static class ResourceHelper
     {
@@ -21,6 +24,25 @@
             catch
             {
                 return $"[{key}]";
+            }
+        }
+
+        public static BitmapImage CreateImageFromBase64(string base64)
+        {
+            try
+            {
+                byte[] binaryData = Convert.FromBase64String(base64);
+                BitmapImage bi = new BitmapImage();
+                bi.BeginInit();
+                bi.StreamSource = new MemoryStream(binaryData);
+                bi.CacheOption = BitmapCacheOption.OnLoad;
+                bi.EndInit();
+                bi.Freeze();
+                return bi;
+            }
+            catch
+            {
+                return null;
             }
         }
     }

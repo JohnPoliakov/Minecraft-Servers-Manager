@@ -5,6 +5,7 @@ using Minecraft_Server_Manager.ViewModels;
 using Minecraft_Server_Manager.Views;
 using System.IO;
 using System.IO.Compression;
+using System.Net.Http;
 using System.Windows;
 
 namespace Minecraft_Server_Manager.UserControls
@@ -14,6 +15,9 @@ namespace Minecraft_Server_Manager.UserControls
         #region Fields
         private MainViewModel _mainVM;
         private bool _isInitialized = false;
+        private string _tempIconUrl = null;
+
+        private string _currentIconBase64 = null;
         #endregion
 
         #region Constructor & Lifecycle
@@ -26,7 +30,6 @@ namespace Minecraft_Server_Manager.UserControls
         private async void CurseForgeView_Loaded(object sender, RoutedEventArgs e)
         {
             this.Loaded -= CurseForgeView_Loaded;
-
             if (!_isInitialized)
             {
                 await InitializeWebView();
@@ -44,7 +47,6 @@ namespace Minecraft_Server_Manager.UserControls
                     Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                     "Minecraft Servers Manager",
                     "BrowserData");
-
                 Directory.CreateDirectory(userDataFolder);
 
                 var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
@@ -52,6 +54,19 @@ namespace Minecraft_Server_Manager.UserControls
 
                 webView.CoreWebView2.DownloadStarting += CoreWebView2_DownloadStarting;
                 webView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
+                webView.CoreWebView2.WebMessageReceived += CoreWebView2_WebMessageReceived;
+
+                await webView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync(@"
+                    document.addEventListener('click', function(e) {
+                        var target = e.target.closest('.download-cta'); 
+                        if (target) {
+                            var logo = document.querySelector('.project-logo');
+                            if (logo && logo.src) {
+                                window.chrome.webview.postMessage(logo.src);
+                            }
+                        }
+                    });
+                ");
 
                 webView.Source = new Uri("https://www.curseforge.com/minecraft/search?class=modpacks&page=1&pageSize=20");
 
@@ -68,18 +83,25 @@ namespace Minecraft_Server_Manager.UserControls
         #endregion
 
         #region WebView2 Events Handlers
+        private void CoreWebView2_WebMessageReceived(object sender, CoreWebView2WebMessageReceivedEventArgs e)
+        {
+            string url = e.TryGetWebMessageAsString();
+            if (!string.IsNullOrEmpty(url))
+            {
+                _tempIconUrl = url;
+            }
+        }
+
         private void CoreWebView2_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
             string targetUrl = e.Uri;
             bool hasMinecraft = targetUrl.Contains("minecraft", StringComparison.OrdinalIgnoreCase);
             bool hasModpacks = targetUrl.Contains("modpacks", StringComparison.OrdinalIgnoreCase);
-            bool isDownload = targetUrl.Contains("/download", StringComparison.OrdinalIgnoreCase) || targetUrl.Contains("api-key", StringComparison.OrdinalIgnoreCase) || targetUrl.Contains(".zip", StringComparison.OrdinalIgnoreCase);
+            bool isDownload = targetUrl.Contains("/download", StringComparison.OrdinalIgnoreCase)
+                           || targetUrl.Contains("api-key", StringComparison.OrdinalIgnoreCase)
+                           || targetUrl.Contains(".zip", StringComparison.OrdinalIgnoreCase);
 
-            if (isDownload || (hasMinecraft && hasModpacks))
-            {
-                return;
-            }
-
+            if (isDownload || (hasMinecraft && hasModpacks)) return;
             e.Cancel = true;
         }
 
@@ -87,38 +109,44 @@ namespace Minecraft_Server_Manager.UserControls
         {
             string fileName = Path.GetFileName(e.ResultFilePath);
             bool isZip = fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
-
             bool isServerPack = fileName.IndexOf("Server", StringComparison.OrdinalIgnoreCase) >= 0;
 
             if (!isZip || !isServerPack)
             {
                 e.Cancel = true;
                 e.Handled = true;
-
                 Dispatcher.Invoke(() =>
                 {
                     CustomMessageBox.Show(
                         $"Le fichier '{fileName}' a été ignoré.\nSeuls les fichiers '.zip' contenant 'Server' sont acceptés.",
-                        ResourceHelper.GetString("Loc_Error"),
-                        MessageBoxType.Info);
+                        ResourceHelper.GetString("Loc_Error"), MessageBoxType.Info);
                 });
                 return;
             }
+
+            string iconUrlToDownload = _tempIconUrl;
+            _currentIconBase64 = null;
 
             Dispatcher.Invoke(() =>
             {
                 webView.Visibility = Visibility.Hidden;
                 ServerInstallBlock.Visibility = Visibility.Visible;
 
+                ServerPackIcon.Source = null;
+
                 LoadingBar.IsIndeterminate = false;
                 LoadingBar.Value = 0;
-
                 ServerInstallStatus.Text = ResourceHelper.GetString("Loc_ServerDownloading");
                 if (ProgressText != null) ProgressText.Text = "0%";
 
                 var mainWindow = System.Windows.Application.Current.MainWindow;
                 if (mainWindow != null) mainWindow.IsEnabled = false;
             });
+
+            if (!string.IsNullOrEmpty(iconUrlToDownload))
+            {
+                Task.Run(async () => await LoadPreviewImage(iconUrlToDownload));
+            }
 
             string tempFolder = Path.Combine(Path.GetTempPath(), "MSM_Downloads");
             Directory.CreateDirectory(tempFolder);
@@ -130,17 +158,12 @@ namespace Minecraft_Server_Manager.UserControls
             e.DownloadOperation.BytesReceivedChanged += (s, args) =>
             {
                 var downloadOp = (CoreWebView2DownloadOperation)s;
-                Dispatcher.Invoke(() =>
-                {
-                    UpdateProgress(downloadOp.BytesReceived, downloadOp.TotalBytesToReceive);
-                });
+                Dispatcher.Invoke(() => UpdateProgress(downloadOp.BytesReceived, downloadOp.TotalBytesToReceive));
             };
 
-            // Fin du téléchargement
             e.DownloadOperation.StateChanged += (s, args) =>
             {
                 var downloadOp = (CoreWebView2DownloadOperation)s;
-
                 if (downloadOp.State == CoreWebView2DownloadState.Completed)
                 {
                     Dispatcher.Invoke(() => InstallModpack(destinationPath));
@@ -157,6 +180,28 @@ namespace Minecraft_Server_Manager.UserControls
         }
         #endregion
 
+        #region Image Handling (NOUVEAU)
+
+        private async Task LoadPreviewImage(string url)
+        {
+            string base64 = await DownloadImageAsBase64(url);
+            if (base64 != null)
+            {
+                _currentIconBase64 = base64;
+
+                await Dispatcher.InvokeAsync(() =>
+                {
+                    try
+                    {
+                        ServerPackIcon.Source = ResourceHelper.CreateImageFromBase64(base64);
+                        ServerPackIcon.Margin = new Thickness(0, 0, 0, 20);
+                    }
+                    catch { }
+                });
+            }
+        }
+        #endregion
+
         #region Installation Logic
         private async void InstallModpack(string zipPath)
         {
@@ -167,10 +212,8 @@ namespace Minecraft_Server_Manager.UserControls
                 if (ProgressText != null) ProgressText.Text = "";
 
                 string packName = Path.GetFileNameWithoutExtension(zipPath);
-
                 ConfigManager.Load();
-                string baseInstallPath = ConfigManager.Settings.DefaultServerPath;
-                string finalServerFolder = Path.Combine(baseInstallPath, packName);
+                string finalServerFolder = Path.Combine(ConfigManager.Settings.DefaultServerPath, packName);
 
                 if (Directory.Exists(finalServerFolder))
                     finalServerFolder += "_" + DateTime.Now.Ticks;
@@ -178,12 +221,10 @@ namespace Minecraft_Server_Manager.UserControls
                 await Task.Run(() =>
                 {
                     Directory.CreateDirectory(finalServerFolder);
-
                     ZipFile.ExtractToDirectory(zipPath, finalServerFolder);
 
                     var subDirs = Directory.GetDirectories(finalServerFolder);
                     var files = Directory.GetFiles(finalServerFolder);
-
                     if (files.Length == 0 && subDirs.Length == 1)
                     {
                         string subDir = subDirs[0];
@@ -208,7 +249,8 @@ namespace Minecraft_Server_Manager.UserControls
                     FolderPath = finalServerFolder,
                     JdkPath = "java",
                     JvmArguments = $"-Xmx{ConfigManager.Settings.DefaultRam}G -Xms{ConfigManager.Settings.DefaultRam}G",
-                    JarName = DetectServerJar(finalServerFolder)
+                    JarName = DetectServerJar(finalServerFolder),
+                    IconBase64 = _currentIconBase64
                 };
 
                 if (_mainVM != null)
@@ -218,7 +260,6 @@ namespace Minecraft_Server_Manager.UserControls
                 }
 
                 CustomMessageBox.Show($"Le modpack '{packName}' est installé !", ResourceHelper.GetString("Loc_Success"), MessageBoxType.Info);
-
                 try { File.Delete(zipPath); } catch { }
             }
             catch (Exception ex)
@@ -228,6 +269,23 @@ namespace Minecraft_Server_Manager.UserControls
             finally
             {
                 ResetUI();
+            }
+        }
+
+        private async Task<string> DownloadImageAsBase64(string url)
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+                    byte[] imageBytes = await client.GetByteArrayAsync(url);
+                    return Convert.ToBase64String(imageBytes);
+                }
+            }
+            catch
+            {
+                return null;
             }
         }
         #endregion
@@ -240,12 +298,9 @@ namespace Minecraft_Server_Manager.UserControls
                 LoadingBar.IsIndeterminate = true;
                 return;
             }
-
             double percentage = (double)bytesReceived / (double)totalBytes * 100;
             LoadingBar.Value = percentage;
-
-            if (ProgressText != null)
-                ProgressText.Text = $"{percentage:0}%";
+            if (ProgressText != null) ProgressText.Text = $"{percentage:0}%";
         }
 
         private void ResetUI()
@@ -255,6 +310,7 @@ namespace Minecraft_Server_Manager.UserControls
 
             webView.Visibility = Visibility.Visible;
             ServerInstallBlock.Visibility = Visibility.Hidden;
+            ServerPackIcon.Source = null; // Nettoyage de l'image
         }
         #endregion
 
@@ -262,7 +318,6 @@ namespace Minecraft_Server_Manager.UserControls
         private string DetectServerJar(string folder)
         {
             if (!Directory.Exists(folder)) return "";
-
             var jars = Directory.GetFiles(folder, "*.jar");
             foreach (var jar in jars)
             {

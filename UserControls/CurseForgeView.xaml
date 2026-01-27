@@ -25,6 +25,7 @@
 
         <Border Grid.Row="1" Background="{DynamicResource PrimaryBrush}" Visibility="Hidden" Name="ServerInstallBlock">
             <StackPanel VerticalAlignment="Center">
+                <Image Name="ServerPackIcon" Width="150" Height="150"></Image>
                 <TextBlock x:Name="ServerInstallStatus" Text="{DynamicResource Loc_ServerDownloading}" Foreground="White" FontSize="35" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="25,0,25,15"/>
 
                 <ProgressBar x:Name="LoadingBar" IsIndeterminate="False" Height="10" Width="300" 
