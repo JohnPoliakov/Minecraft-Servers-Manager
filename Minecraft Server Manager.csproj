@@ -40,6 +40,8 @@
     <None Remove="Resources\Flags\flag-fr.png" />
     <None Remove="Resources\Flags\flag-uk.png" />
     <None Remove="Resources\gear-settings.png" />
+    <None Remove="Resources\progressbar-empty.png" />
+    <None Remove="Resources\progressbar-full.png" />
     <None Remove="Resources\save.png" />
   </ItemGroup>
 
@@ -64,6 +66,8 @@
   <ItemGroup>
     <Resource Include="Fonts\MinecraftTen-VGORe.ttf" />
     <Resource Include="Resources\gear-settings.png" />
+    <Resource Include="Resources\progressbar-empty.png" />
+    <Resource Include="Resources\progressbar-full.png" />
     <Resource Include="Resources\save.png" />
   </ItemGroup>
 

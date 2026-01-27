@@ -134,8 +134,9 @@ namespace Minecraft_Server_Manager.UserControls
 
                 ServerPackIcon.Source = null;
 
-                LoadingBar.IsIndeterminate = false;
-                LoadingBar.Value = 0;
+                SetLoadingMode(false);
+                StopProgress.Offset = 0;
+                StopProgressFade.Offset = 0;
                 ServerInstallStatus.Text = ResourceHelper.GetString("Loc_ServerDownloading");
                 if (ProgressText != null) ProgressText.Text = "0%";
 
@@ -208,7 +209,7 @@ namespace Minecraft_Server_Manager.UserControls
             try
             {
                 ServerInstallStatus.Text = ResourceHelper.GetString("Loc_ModpackDownloading");
-                LoadingBar.IsIndeterminate = true;
+                SetLoadingMode(true);
                 if (ProgressText != null) ProgressText.Text = "";
 
                 string packName = Path.GetFileNameWithoutExtension(zipPath);
@@ -256,7 +257,8 @@ namespace Minecraft_Server_Manager.UserControls
                 if (_mainVM != null)
                 {
                     _mainVM.Servers.Add(newProfile);
-                    _mainVM.ShowHomeCommand.Execute(null);
+                    _mainVM.MonitorServer(newProfile);
+
                 }
 
                 CustomMessageBox.Show($"Le modpack '{packName}' est installé !", ResourceHelper.GetString("Loc_Success"), MessageBoxType.Info);
@@ -295,12 +297,17 @@ namespace Minecraft_Server_Manager.UserControls
         {
             if (totalBytes == null || totalBytes == 0)
             {
-                LoadingBar.IsIndeterminate = true;
+                SetLoadingMode(false);
+                StopProgress.Offset = 0;
+                StopProgressFade.Offset = 0;
                 return;
             }
-            double percentage = (double)bytesReceived / (double)totalBytes * 100;
-            LoadingBar.Value = percentage;
-            if (ProgressText != null) ProgressText.Text = $"{percentage:0}%";
+            double ratio = (double)bytesReceived / (double)totalBytes;
+
+            StopProgress.Offset = ratio;
+            StopProgressFade.Offset = ratio;
+            if (ProgressText != null)
+                ProgressText.Text = $"{ratio * 100:0}%";
         }
 
         private void ResetUI()
@@ -310,7 +317,7 @@ namespace Minecraft_Server_Manager.UserControls
 
             webView.Visibility = Visibility.Visible;
             ServerInstallBlock.Visibility = Visibility.Hidden;
-            ServerPackIcon.Source = null; // Nettoyage de l'image
+            ServerPackIcon.Source = null;
         }
         #endregion
 
@@ -326,6 +333,21 @@ namespace Minecraft_Server_Manager.UserControls
                     return Path.GetFileName(jar);
             }
             return jars.Length > 0 ? Path.GetFileName(jars[0]) : "";
+        }
+
+        private void SetLoadingMode(bool isIndeterminate)
+        {
+            if (isIndeterminate)
+            {
+                LoadingBarInfinite.Visibility = Visibility.Visible;
+                LoadingBarDeterminate.Visibility = Visibility.Hidden;
+                if (ProgressText != null) ProgressText.Text = "";
+            }
+            else
+            {
+                LoadingBarInfinite.Visibility = Visibility.Hidden;
+                LoadingBarDeterminate.Visibility = Visibility.Visible;
+            }
         }
         #endregion
     }

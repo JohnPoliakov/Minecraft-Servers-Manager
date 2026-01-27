@@ -28,8 +28,53 @@
                 <Image Name="ServerPackIcon" Width="150" Height="150"></Image>
                 <TextBlock x:Name="ServerInstallStatus" Text="{DynamicResource Loc_ServerDownloading}" Foreground="White" FontSize="35" TextWrapping="Wrap" TextAlignment="Center" HorizontalAlignment="Center" Margin="25,0,25,15"/>
 
-                <ProgressBar x:Name="LoadingBar" IsIndeterminate="False" Height="10" Width="300" 
-                             Background="{DynamicResource SecondaryBrush}" Foreground="#f1c40f" BorderThickness="0" Visibility="Visible" Margin="0,0,0,10"/>
+                <Grid Width="500" Height="15" Margin="0,0,0,10">
+                    <Image Stretch="Fill">
+                        <Image.Source>
+                            <FormatConvertedBitmap Source="/Resources/progressbar-empty.png" DestinationFormat="Gray8"/>
+                        </Image.Source>
+                        <Image.Opacity>0.5</Image.Opacity>
+                    </Image>
+
+                    <Image x:Name="LoadingBarInfinite" Source="/Resources/progressbar-full.png" Stretch="Fill" Visibility="Hidden">
+                        <Image.OpacityMask>
+                            <LinearGradientBrush StartPoint="0, 0" EndPoint="1, 0">
+                                <GradientStop Color="Transparent" Offset="-0.35" x:Name="Stop1"/>
+                                <GradientStop Color="Black"       Offset="-0.30" x:Name="Stop2"/>
+                                <GradientStop Color="Black"       Offset="-0.05" x:Name="Stop3"/>
+                                <GradientStop Color="Transparent" Offset="0.0"   x:Name="Stop4"/>
+                            </LinearGradientBrush>
+                        </Image.OpacityMask>
+                        <Image.Triggers>
+                            <EventTrigger RoutedEvent="Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever">
+                                        <DoubleAnimation Storyboard.TargetName="Stop1" Storyboard.TargetProperty="Offset" 
+                                         From="-0.35" To="1.15" Duration="0:0:1.2"/>
+
+                                        <DoubleAnimation Storyboard.TargetName="Stop2" Storyboard.TargetProperty="Offset" 
+                                         From="-0.30" To="1.20" Duration="0:0:1.2"/>
+
+                                        <DoubleAnimation Storyboard.TargetName="Stop3" Storyboard.TargetProperty="Offset" 
+                                         From="-0.05" To="1.45" Duration="0:0:1.2"/>
+
+                                        <DoubleAnimation Storyboard.TargetName="Stop4" Storyboard.TargetProperty="Offset" 
+                                         From="0.0" To="1.50" Duration="0:0:1.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Image.Triggers>
+                    </Image>
+
+                    <Image x:Name="LoadingBarDeterminate" Source="/Resources/progressbar-full.png" Stretch="Fill" Visibility="Visible">
+                        <Image.OpacityMask>
+                            <LinearGradientBrush StartPoint="0, 0" EndPoint="1, 0">
+                                <GradientStop Color="Black" Offset="0" x:Name="StopProgress"/>
+                                <GradientStop Color="Transparent" Offset="0" x:Name="StopProgressFade"/>
+                            </LinearGradientBrush>
+                        </Image.OpacityMask>
+                    </Image>
+                </Grid>
 
                 <TextBlock x:Name="ProgressText" Text="0%" Foreground="#95a5a6" HorizontalAlignment="Center"/>
             </StackPanel>

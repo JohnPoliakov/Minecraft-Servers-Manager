@@ -4,6 +4,7 @@ using Minecraft_Server_Manager.UserControls;
 using Minecraft_Server_Manager.Utils;
 using Minecraft_Server_Manager.Views;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -67,6 +68,8 @@ namespace Minecraft_Server_Manager.ViewModels
             ShowBrowserCommand = new RelayCommand(o => ShowBrowser());
             ShowSettingsCommand = new RelayCommand(o => CurrentView = new SettingsViewModel());
 
+            Servers.CollectionChanged += Servers_CollectionChanged;
+
             LoadServers();
 
             ShowHome();
@@ -104,6 +107,21 @@ namespace Minecraft_Server_Manager.ViewModels
         #endregion
 
         #region Server Management (CRUD)
+
+        private void Servers_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                if (e.NewItems != null)
+                {
+                    foreach (ServerProfile newProfile in e.NewItems)
+                    {
+                        SaveNewProfile(newProfile);
+                    }
+                }
+            }
+        }
+
         private void LoadServers()
         {
             string appDataPath = ConfigFolderPath;
@@ -162,8 +180,6 @@ namespace Minecraft_Server_Manager.ViewModels
                     JdkPath = "java",
                     JvmArguments = $"-Xmx{ConfigManager.Settings.DefaultRam}G -Xms{ConfigManager.Settings.DefaultRam}G"
                 };
-
-                SaveNewProfile(newProfile);
 
                 Servers.Add(newProfile);
                 EditServer(newProfile);
