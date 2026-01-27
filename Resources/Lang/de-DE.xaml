@@ -164,4 +164,10 @@
     <sys:String x:Key="Loc_MsgBox_LoadingTitle">HERUNTERLADEN</sys:String>
     <sys:String x:Key="Loc_MsgBox_InputTitle">EINGABE</sys:String>
 
+    <sys:String x:Key="Loc_LaunchMode">STARTMODUS</sys:String>
+    <sys:String x:Key="Loc_ModeJava">Direkt (Java + Argumente)</sys:String>
+    <sys:String x:Key="Loc_ModeBatch">Skriptdatei (.bat)</sys:String>
+    <sys:String x:Key="Loc_SelectBatTitle">Startskript auswählen (.bat)</sys:String>
+    <sys:String x:Key="Loc_BatchFile">BATCH-DATEI (.BAT)</sys:String>
+    <sys:String x:Key="Loc_ClearLogsOnStart">Logs beim Start leeren</sys:String>
 </ResourceDictionary>

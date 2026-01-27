@@ -169,5 +169,5 @@
     <sys:String x:Key="Loc_ModeBatch">Fichier Script (.bat)</sys:String>
     <sys:String x:Key="Loc_SelectBatTitle">Sélectionner le script de démarrage (.bat)</sys:String>
     <sys:String x:Key="Loc_BatchFile">FICHIER SCRIPT (.BAT)</sys:String>
-    <sys:String x:Key="Loc_ClearLogsOnStart">Vider les logs au redémarrage</sys:String>
+    <sys:String x:Key="Loc_ClearLogsOnStart">Vider les logs au démarrage</sys:String>
 </ResourceDictionary>

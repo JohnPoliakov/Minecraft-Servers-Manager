@@ -163,5 +163,11 @@
     <sys:String x:Key="Loc_MsgBox_DefaultTitle">NOTIFICATION</sys:String>
     <sys:String x:Key="Loc_MsgBox_LoadingTitle">DOWNLOADING</sys:String>
     <sys:String x:Key="Loc_MsgBox_InputTitle">INPUT</sys:String>
-
+    
+    <sys:String x:Key="Loc_LaunchMode">LAUNCH MODE</sys:String>
+    <sys:String x:Key="Loc_ModeJava">Direct (Java + Arguments)</sys:String>
+    <sys:String x:Key="Loc_ModeBatch">Batch Script (.bat)</sys:String>
+    <sys:String x:Key="Loc_SelectBatTitle">Select startup script (.bat)</sys:String>
+    <sys:String x:Key="Loc_BatchFile">BATCH FILE (.BAT)</sys:String>
+    <sys:String x:Key="Loc_ClearLogsOnStart">Clear logs on startup</sys:String>
 </ResourceDictionary>
