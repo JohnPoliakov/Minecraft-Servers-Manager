@@ -72,63 +72,124 @@
             <TabItem Header="{DynamicResource Loc_TabConfiguration}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
                     <StackPanel Margin="10">
-                        <TextBlock Text="{DynamicResource Loc_JavaVersion}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <Grid Margin="0,0,0,15">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
 
-                            <ComboBox Grid.Column="0" ItemsSource="{Binding DetectedJavaPaths}" SelectedValue="{Binding JavaPath, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Path" DisplayMemberPath="Name" IsEditable="False" Padding="10,5" 
+                        <TextBlock Text="{DynamicResource Loc_LaunchMode}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <RadioButton Content="{DynamicResource Loc_ModeJava}" IsChecked="{Binding IsJavaMode}" Foreground="White" Margin="0,0,15,0"/>
+                            <RadioButton Content="{DynamicResource Loc_ModeBatch}" IsChecked="{Binding IsBatchMode}" Foreground="White"/>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsJavaMode, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="{DynamicResource Loc_JavaVersion}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ComboBox Grid.Column="0" ItemsSource="{Binding DetectedJavaPaths}" SelectedValue="{Binding JavaPath, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Path" DisplayMemberPath="Name" IsEditable="False" Padding="10,5" 
                                       Background="{DynamicResource SecondaryBrush}" Foreground="Black" BorderThickness="0" VerticalContentAlignment="Center">
-                                <ComboBox.Resources>
-                                    <Style TargetType="ComboBoxItem">
-                                        <Setter Property="Background" Value="{DynamicResource SecondaryBrush}"/>
-                                        <Setter Property="Foreground" Value="White"/>
-                                        <Setter Property="BorderThickness" Value="0"/>
-                                        <Setter Property="Padding" Value="5"/>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate TargetType="ComboBoxItem">
-                                                    <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
-                                                        <ContentPresenter/>
-                                                    </Border>
-                                                    <ControlTemplate.Triggers>
-                                                        <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter TargetName="Bd" Property="Background" Value="#3498db"/>
-                                                        </Trigger>
-                                                        <Trigger Property="IsSelected" Value="True">
-                                                            <Setter TargetName="Bd" Property="Background" Value="#2980b9"/>
-                                                        </Trigger>
-                                                    </ControlTemplate.Triggers>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style>
-                                </ComboBox.Resources>
-                            </ComboBox>
-                            <Button Grid.Column="1" Content="..." Command="{Binding SelectJdkCommand}" Width="40" Background="#95a5a6" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
-                        </Grid>
+                                    <ComboBox.Resources>
+                                        <Style TargetType="ComboBoxItem">
+                                            <Setter Property="Background" Value="{DynamicResource SecondaryBrush}"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="Padding" Value="5"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ComboBoxItem">
+                                                        <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="#3498db"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="#2980b9"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ComboBox.Resources>
+                                </ComboBox>
+                                <Button Grid.Column="1" Content="..." Command="{Binding SelectJdkCommand}" Width="40" Background="#95a5a6" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
+                            </Grid>
 
-                        <TextBlock Text="{DynamicResource Loc_LaunchFile}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <Grid Margin="0,0,0,15">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="79*"/>
-                                <ColumnDefinition Width="5*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" Text="{Binding JarName}" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="White" BorderThickness="0"/>
-                            <Button Grid.Column="1" Content="..." Command="{Binding SelectJarCommand}" Width="40" Background="#95a5a6" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
-                        </Grid>
+                            <TextBlock Text="{DynamicResource Loc_LaunchFile}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="79*"/>
+                                    <ColumnDefinition Width="5*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Text="{Binding JarName}" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="White" BorderThickness="0"/>
+                                <Button Grid.Column="1" Content="..." Command="{Binding SelectJarCommand}" Width="40" Background="#95a5a6" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
+                            </Grid>
 
-                        <TextBlock Text="{DynamicResource Loc_JvmArgs}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
-                        <Grid Margin="0,0,0,15">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <TextBox Grid.Row="0" Text="{Binding JvmArguments}" TextWrapping="Wrap" Height="60" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="White" BorderThickness="0" AcceptsReturn="True"/>
-                            <Button Grid.Row="1" Content="{DynamicResource Loc_ApplyAikar}" Command="{Binding ApplyAikarFlagsCommand}" HorizontalAlignment="Right" Margin="0,5,0,0" Background="Transparent" Foreground="#F5CC27" BorderThickness="0" Cursor="Hand"/>
-                        </Grid>
+                            <TextBlock Text="{DynamicResource Loc_JvmArgs}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <TextBox Grid.Row="0" Text="{Binding JvmArguments}" TextWrapping="Wrap" Height="60" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="White" BorderThickness="0" AcceptsReturn="True"/>
+                                <Button Grid.Row="1" Content="{DynamicResource Loc_ApplyAikar}" Command="{Binding ApplyAikarFlagsCommand}" HorizontalAlignment="Right" Margin="0,5,0,0" Background="Transparent" Foreground="#F5CC27" BorderThickness="0" Cursor="Hand"/>
+                            </Grid>
+                        </StackPanel>
+
+                        <StackPanel Visibility="{Binding IsBatchMode, Converter={StaticResource BoolToVis}}">
+                            <TextBlock Text="{DynamicResource Loc_JavaVersion}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <ComboBox Grid.Column="0" ItemsSource="{Binding DetectedJavaPaths}" SelectedValue="{Binding JavaPath, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Path" DisplayMemberPath="Name" IsEditable="False" Padding="10,5" 
+          Background="{DynamicResource SecondaryBrush}" Foreground="Black" BorderThickness="0" VerticalContentAlignment="Center">
+                                    <ComboBox.Resources>
+                                        <Style TargetType="ComboBoxItem">
+                                            <Setter Property="Background" Value="{DynamicResource SecondaryBrush}"/>
+                                            <Setter Property="Foreground" Value="White"/>
+                                            <Setter Property="BorderThickness" Value="0"/>
+                                            <Setter Property="Padding" Value="5"/>
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ComboBoxItem">
+                                                        <Border x:Name="Bd" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                                                            <ContentPresenter/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="#3498db"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="Bd" Property="Background" Value="#2980b9"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ComboBox.Resources>
+                                </ComboBox>
+                                <Button Grid.Column="1" Content="..." Command="{Binding SelectJdkCommand}" Width="40" Background="#95a5a6" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
+                            </Grid>
+                            <TextBlock Text="{DynamicResource Loc_BatchFile}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Text="{Binding BatchFilename}" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="White" BorderThickness="0"/>
+                                <Button Grid.Column="1" Content="..." Command="{Binding SelectBatCommand}" Width="40" Background="#95a5a6" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
+                            </Grid>
+
+                            <TextBlock Text="Note: La commande 'java' dans le script sera remplacée par le JDK sélectionné ci-dessus." 
+                                       Foreground="#7f8c8d" FontStyle="Italic" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,15"/>
+                        </StackPanel>
 
                         <TextBlock Text="{DynamicResource Loc_DiscordWebhook}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,5"/>
                         <Grid Margin="0,0,0,15">
@@ -144,10 +205,12 @@
                             <TextBlock Text="{DynamicResource Loc_At}" Foreground="#bdc3c7" VerticalAlignment="Center" Margin="10,0,5,0"/>
                             <TextBox Text="{Binding AutoRestartTime}" Width="60" Padding="5" Background="{DynamicResource SecondaryBrush}" Foreground="White" BorderThickness="0" ToolTip="Format HH:mm"/>
                         </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <CheckBox IsChecked="{Binding ClearLogsOnStart}" Content="{DynamicResource Loc_ClearLogsOnStart}" Foreground="White" VerticalAlignment="Center"/>
+                        </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
-
             <TabItem Header="{DynamicResource Loc_TabProperties}">
                 <Grid Margin="10">
                     <Grid.RowDefinitions>

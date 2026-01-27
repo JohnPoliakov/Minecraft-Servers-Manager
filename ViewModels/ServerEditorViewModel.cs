@@ -105,6 +105,47 @@ namespace Minecraft_Server_Manager.ViewModels
                 }
             }
         }
+
+        public bool IsJavaMode
+        {
+            get => _serverProfile.LaunchMode == "Java";
+            set
+            {
+                if (value) _serverProfile.LaunchMode = "Java";
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsBatchMode));
+            }
+        }
+
+        public bool IsBatchMode
+        {
+            get => _serverProfile.LaunchMode == "Batch";
+            set
+            {
+                if (value) _serverProfile.LaunchMode = "Batch";
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(IsJavaMode));
+            }
+        }
+
+        public string BatchFilename
+        {
+            get => _serverProfile.BatchFilename;
+            set { _serverProfile.BatchFilename = value; OnPropertyChanged(); }
+        }
+
+        public bool ClearLogsOnStart
+        {
+            get => _serverProfile.ClearLogsOnStart;
+            set
+            {
+                if (_serverProfile.ClearLogsOnStart != value)
+                {
+                    _serverProfile.ClearLogsOnStart = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
         #endregion
 
         #region Commands
@@ -115,6 +156,7 @@ namespace Minecraft_Server_Manager.ViewModels
         public ICommand SelectImageCommand { get; set; }
         public ICommand SelectJdkCommand { get; set; }
         public ICommand SelectJarCommand { get; set; }
+        public ICommand SelectBatCommand { get; set; }
 
         // Tools
         public ICommand ApplyAikarFlagsCommand { get; set; }
@@ -156,6 +198,7 @@ namespace Minecraft_Server_Manager.ViewModels
             SelectImageCommand = new RelayCommand(SelectImage);
             SelectJdkCommand = new RelayCommand(SelectJdk);
             SelectJarCommand = new RelayCommand(SelectJar);
+            SelectBatCommand = new RelayCommand(SelectBat);
 
             ApplyAikarFlagsCommand = new RelayCommand(ApplyAikarFlags);
 
@@ -379,6 +422,29 @@ namespace Minecraft_Server_Manager.ViewModels
                 else
                 {
                     JarName = fullPath;
+                }
+            }
+        }
+
+        private void SelectBat(object obj)
+        {
+            Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
+            {
+                Filter = "Batch Files (*.bat;*.cmd)|*.bat;*.cmd",
+                Title = ResourceHelper.GetString("Loc_SelectBatTitle"),
+                InitialDirectory = _serverProfile.FolderPath
+            };
+
+            if (openFileDialog.ShowDialog() == true)
+            {
+                string fullPath = openFileDialog.FileName;
+                if (fullPath.StartsWith(_serverProfile.FolderPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    BatchFilename = Path.GetFileName(fullPath);
+                }
+                else
+                {
+                    BatchFilename = fullPath;
                 }
             }
         }

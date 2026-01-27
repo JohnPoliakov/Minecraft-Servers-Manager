@@ -24,6 +24,7 @@ namespace Minecraft_Server_Manager.UserControls
             InitializeComponent();
 
             this.DataContextChanged += OnDataContextChanged;
+            this.Loaded += OnViewLoaded;
 
             _logUpdateTimer = new DispatcherTimer();
             _logUpdateTimer.Interval = TimeSpan.FromMilliseconds(100);
@@ -33,14 +34,12 @@ namespace Minecraft_Server_Manager.UserControls
         #endregion
 
         #region Lifecycle & DataContext Management
-        /// <summary>
-        /// Gère le changement de serveur (ViewModel) pour s'abonner/désabonner aux bons événements.
-        /// </summary>
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (_currentVm != null)
             {
                 _currentVm.LogEntryReceived -= EnqueueLog;
+                _currentVm.ClearLogsRequested -= ClearConsole;
             }
 
             if (e.NewValue is ServerMonitorViewModel vm)
@@ -50,23 +49,18 @@ namespace Minecraft_Server_Manager.UserControls
                 LoadInitialLogs(vm.ServerLogs);
 
                 vm.LogEntryReceived += EnqueueLog;
+                vm.ClearLogsRequested += ClearConsole;
             }
         }
         #endregion
 
         #region Log Processing Engine (Queue & Timer)
-        /// <summary>
-        /// Ajoute un log à la file d'attente (Thread-Safe).
-        /// </summary>
         private void EnqueueLog(string text)
         {
             if (string.IsNullOrWhiteSpace(text)) return;
             _logQueue.Enqueue(text);
         }
 
-        /// <summary>
-        /// Méthode exécutée périodiquement par le Timer pour vider la file d'attente et mettre à jour l'UI.
-        /// </summary>
         private void ProcessLogQueue(object sender, EventArgs e)
         {
             if (_logQueue.IsEmpty) return;
@@ -86,9 +80,13 @@ namespace Minecraft_Server_Manager.UserControls
             }
         }
 
-        /// <summary>
-        /// Charge massivement les logs initiaux (au lancement de la vue).
-        /// </summary>
+        private void ClearConsole()
+        {
+            while (_logQueue.TryDequeue(out _)) { }
+
+            ConsoleOutput.Document.Blocks.Clear();
+        }
+
         private void LoadInitialLogs(string fullLogs)
         {
             ConsoleOutput.Document.Blocks.Clear();
@@ -154,6 +152,13 @@ namespace Minecraft_Server_Manager.UserControls
         #endregion
 
         #region UI Event Handlers
+        private void OnViewLoaded(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                ConsoleOutput.ScrollToEnd();
+            }, DispatcherPriority.Background);
+        }
         private void CommandInput_TextChanged(object sender, TextChangedEventArgs e)
         {
             if (sender is System.Windows.Controls.TextBox tb)

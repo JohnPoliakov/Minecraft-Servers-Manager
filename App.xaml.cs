@@ -9,6 +9,18 @@ namespace Minecraft_Server_Manager
 
         private static Mutex _mutex = null;
 
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            // Affiche l'erreur avant que l'app ne meure
+            System.Windows.MessageBox.Show($"Une erreur inattendue est survenue :\n\n{e.Exception.Message}\n\n{e.Exception.StackTrace}",
+                            "Crash Application",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Error);
+
+            // Empêche le crash si possible (optionnel, à utiliser avec prudence)
+            e.Handled = true;
+        }
+
         protected override void OnStartup(StartupEventArgs e)
         {
             const string appName = "MinecraftServersManager_B12F6C80-5579-4B52-8C84-18D3A8576449";

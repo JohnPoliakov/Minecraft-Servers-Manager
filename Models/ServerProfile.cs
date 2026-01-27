@@ -19,6 +19,8 @@ namespace Minecraft_Server_Manager.Models
         private string _discordWebhookUrl;
         private int _playerCount = 0;
         private bool _isRunning;
+        public string LaunchMode { get; set; } = "Java";
+        public string BatchFilename { get; set; } = "start.bat";
         #endregion
 
         #region Events
@@ -90,6 +92,13 @@ namespace Minecraft_Server_Manager.Models
         {
             get => _discordWebhookUrl;
             set { _discordWebhookUrl = value; OnPropertyChanged(); }
+        }
+
+        private bool _clearLogsOnStart = false;
+        public bool ClearLogsOnStart
+        {
+            get => _clearLogsOnStart;
+            set { _clearLogsOnStart = value; OnPropertyChanged(); }
         }
         #endregion
 

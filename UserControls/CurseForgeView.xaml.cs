@@ -1,5 +1,6 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.Utils;
 using Minecraft_Server_Manager.ViewModels;
 using Minecraft_Server_Manager.Views;
 using System.IO;
@@ -49,7 +50,6 @@ namespace Minecraft_Server_Manager.UserControls
                 var env = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
                 await webView.EnsureCoreWebView2Async(env);
 
-                // 3. Abonnement aux événements
                 webView.CoreWebView2.DownloadStarting += CoreWebView2_DownloadStarting;
                 webView.CoreWebView2.NavigationStarting += CoreWebView2_NavigationStarting;
 
@@ -62,36 +62,32 @@ namespace Minecraft_Server_Manager.UserControls
             }
             catch (Exception ex)
             {
-                CustomMessageBox.Show($"Erreur navigateur : {ex.Message}", "Erreur WebView2");
+                CustomMessageBox.Show($"Erreur navigateur : {ex.Message}", "Erreur WebView2", MessageBoxType.Error);
             }
         }
         #endregion
 
         #region WebView2 Events Handlers
-        /// <summary>
-        /// Filtre la navigation pour empêcher de sortir de la section Minecraft/Modpacks.
-        /// </summary>
         private void CoreWebView2_NavigationStarting(object sender, CoreWebView2NavigationStartingEventArgs e)
         {
             string targetUrl = e.Uri;
-
             bool hasMinecraft = targetUrl.Contains("minecraft", StringComparison.OrdinalIgnoreCase);
             bool hasModpacks = targetUrl.Contains("modpacks", StringComparison.OrdinalIgnoreCase);
+            bool isDownload = targetUrl.Contains("/download", StringComparison.OrdinalIgnoreCase) || targetUrl.Contains("api-key", StringComparison.OrdinalIgnoreCase) || targetUrl.Contains(".zip", StringComparison.OrdinalIgnoreCase);
 
-            if (!hasMinecraft || !hasModpacks)
+            if (isDownload || (hasMinecraft && hasModpacks))
             {
-                e.Cancel = true;
+                return;
             }
+
+            e.Cancel = true;
         }
 
-        /// <summary>
-        /// Intercepte le téléchargement pour l'installer manuellement.
-        /// </summary>
         private void CoreWebView2_DownloadStarting(object sender, CoreWebView2DownloadStartingEventArgs e)
         {
             string fileName = Path.GetFileName(e.ResultFilePath);
-
             bool isZip = fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase);
+
             bool isServerPack = fileName.IndexOf("Server", StringComparison.OrdinalIgnoreCase) >= 0;
 
             if (!isZip || !isServerPack)
@@ -99,20 +95,30 @@ namespace Minecraft_Server_Manager.UserControls
                 e.Cancel = true;
                 e.Handled = true;
 
-                CustomMessageBox.Show(
-                    $"Le fichier '{fileName}' a été bloqué.\n\n" +
-                    "Seuls les packs serveur sont autorisés.",
-                    "Téléchargement Refusé", MessageBoxType.Info);
+                Dispatcher.Invoke(() =>
+                {
+                    CustomMessageBox.Show(
+                        $"Le fichier '{fileName}' a été ignoré.\nSeuls les fichiers '.zip' contenant 'Server' sont acceptés.",
+                        ResourceHelper.GetString("Loc_Error"),
+                        MessageBoxType.Info);
+                });
                 return;
             }
 
-            webView.Visibility = Visibility.Hidden;
-            ServerInstallBlock.Visibility = Visibility.Visible;
+            Dispatcher.Invoke(() =>
+            {
+                webView.Visibility = Visibility.Hidden;
+                ServerInstallBlock.Visibility = Visibility.Visible;
 
-            LoadingBar.IsIndeterminate = false;
-            LoadingBar.Value = 0;
-            ServerInstallStatus.Text = "Téléchargement du serveur...";
-            if (ProgressText != null) ProgressText.Text = "0%";
+                LoadingBar.IsIndeterminate = false;
+                LoadingBar.Value = 0;
+
+                ServerInstallStatus.Text = ResourceHelper.GetString("Loc_ServerDownloading");
+                if (ProgressText != null) ProgressText.Text = "0%";
+
+                var mainWindow = System.Windows.Application.Current.MainWindow;
+                if (mainWindow != null) mainWindow.IsEnabled = false;
+            });
 
             string tempFolder = Path.Combine(Path.GetTempPath(), "MSM_Downloads");
             Directory.CreateDirectory(tempFolder);
@@ -120,9 +126,6 @@ namespace Minecraft_Server_Manager.UserControls
 
             e.ResultFilePath = destinationPath;
             e.Handled = true;
-
-            var mainWindow = System.Windows.Application.Current.MainWindow;
-            if (mainWindow != null) mainWindow.IsEnabled = false;
 
             e.DownloadOperation.BytesReceivedChanged += (s, args) =>
             {
@@ -133,6 +136,7 @@ namespace Minecraft_Server_Manager.UserControls
                 });
             };
 
+            // Fin du téléchargement
             e.DownloadOperation.StateChanged += (s, args) =>
             {
                 var downloadOp = (CoreWebView2DownloadOperation)s;
@@ -146,7 +150,7 @@ namespace Minecraft_Server_Manager.UserControls
                     Dispatcher.Invoke(() =>
                     {
                         ResetUI();
-                        CustomMessageBox.Show("Le téléchargement a été interrompu.", "Erreur");
+                        CustomMessageBox.Show("Le téléchargement a été interrompu.", ResourceHelper.GetString("Loc_Error"), MessageBoxType.Error);
                     });
                 }
             };
@@ -154,14 +158,11 @@ namespace Minecraft_Server_Manager.UserControls
         #endregion
 
         #region Installation Logic
-        /// <summary>
-        /// Logique métier d'extraction et d'installation du serveur.
-        /// </summary>
         private async void InstallModpack(string zipPath)
         {
             try
             {
-                ServerInstallStatus.Text = "Installation du serveur...\nCela peut prendre quelques instants.";
+                ServerInstallStatus.Text = ResourceHelper.GetString("Loc_ModpackDownloading");
                 LoadingBar.IsIndeterminate = true;
                 if (ProgressText != null) ProgressText.Text = "";
 
@@ -177,6 +178,7 @@ namespace Minecraft_Server_Manager.UserControls
                 await Task.Run(() =>
                 {
                     Directory.CreateDirectory(finalServerFolder);
+
                     ZipFile.ExtractToDirectory(zipPath, finalServerFolder);
 
                     var subDirs = Directory.GetDirectories(finalServerFolder);
@@ -188,12 +190,12 @@ namespace Minecraft_Server_Manager.UserControls
                         foreach (var file in Directory.GetFiles(subDir))
                         {
                             string dest = Path.Combine(finalServerFolder, Path.GetFileName(file));
-                            File.Move(file, dest);
+                            if (!File.Exists(dest)) File.Move(file, dest);
                         }
                         foreach (var dir in Directory.GetDirectories(subDir))
                         {
                             string dest = Path.Combine(finalServerFolder, new DirectoryInfo(dir).Name);
-                            Directory.Move(dir, dest);
+                            if (!Directory.Exists(dest)) Directory.Move(dir, dest);
                         }
                         Directory.Delete(subDir);
                     }
@@ -215,13 +217,13 @@ namespace Minecraft_Server_Manager.UserControls
                     _mainVM.ShowHomeCommand.Execute(null);
                 }
 
-                CustomMessageBox.Show($"Le modpack '{packName}' est installé !", "Succès");
+                CustomMessageBox.Show($"Le modpack '{packName}' est installé !", ResourceHelper.GetString("Loc_Success"), MessageBoxType.Info);
 
-                File.Delete(zipPath);
+                try { File.Delete(zipPath); } catch { }
             }
             catch (Exception ex)
             {
-                CustomMessageBox.Show("Erreur durant l'installation : " + ex.Message);
+                CustomMessageBox.Show($"Erreur durant l'installation : {ex.Message}", ResourceHelper.GetString("Loc_Error"), MessageBoxType.Error);
             }
             finally
             {
@@ -259,11 +261,13 @@ namespace Minecraft_Server_Manager.UserControls
         #region Utility Methods
         private string DetectServerJar(string folder)
         {
+            if (!Directory.Exists(folder)) return "";
+
             var jars = Directory.GetFiles(folder, "*.jar");
             foreach (var jar in jars)
             {
                 string name = Path.GetFileName(jar).ToLower();
-                if (name.Contains("server") || name.Contains("forge") || name.Contains("fabric"))
+                if (name.Contains("server") || name.Contains("forge") || name.Contains("fabric") || name.Contains("run"))
                     return Path.GetFileName(jar);
             }
             return jars.Length > 0 ? Path.GetFileName(jars[0]) : "";
