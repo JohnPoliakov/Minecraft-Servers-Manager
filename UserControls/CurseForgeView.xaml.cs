@@ -18,6 +18,14 @@ namespace Minecraft_Server_Manager.UserControls
         private string _tempIconUrl = null;
 
         private string _currentIconBase64 = null;
+
+        // HttpClient statique partagé pour éviter l'épuisement des sockets
+        private static readonly HttpClient _httpClient = new HttpClient();
+
+        static CurseForgeView()
+        {
+            _httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+        }
         #endregion
 
         #region Constructor & Lifecycle
@@ -278,12 +286,8 @@ namespace Minecraft_Server_Manager.UserControls
         {
             try
             {
-                using (HttpClient client = new HttpClient())
-                {
-                    client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
-                    byte[] imageBytes = await client.GetByteArrayAsync(url);
-                    return Convert.ToBase64String(imageBytes);
-                }
+                byte[] imageBytes = await _httpClient.GetByteArrayAsync(url);
+                return Convert.ToBase64String(imageBytes);
             }
             catch
             {

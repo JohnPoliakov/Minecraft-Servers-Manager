@@ -11,6 +11,13 @@ namespace Minecraft_Server_Manager.Models
 {
     public class ServerProfile : INotifyPropertyChanged
     {
+        #region Constants
+        /// <summary>
+        /// Taille maximale du cache de logs en caractères (~5 Mo de texte).
+        /// </summary>
+        private const int MaxCachedLogsLength = 5 * 1024 * 1024;
+        #endregion
+
         #region Fields
         private string _displayName;
         private string _iconBase64;
@@ -19,6 +26,7 @@ namespace Minecraft_Server_Manager.Models
         private string _discordWebhookUrl;
         private int _playerCount = 0;
         private bool _isRunning;
+        private ImageSource _cachedServerIcon;
         public string LaunchMode { get; set; } = "Java";
         public string BatchFilename { get; set; } = "start.bat";
         #endregion
@@ -57,6 +65,7 @@ namespace Minecraft_Server_Manager.Models
                 if (_iconBase64 != value)
                 {
                     _iconBase64 = value;
+                    _cachedServerIcon = null; // Invalider le cache quand l'icône change
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(ServerIcon));
                 }
@@ -132,12 +141,14 @@ namespace Minecraft_Server_Manager.Models
 
         /// <summary>
         /// Génère l'image WPF à partir de la chaîne Base64 stockée.
+        /// Le résultat est mis en cache pour éviter de décoder à chaque accès.
         /// </summary>
         [JsonIgnore]
         public ImageSource ServerIcon
         {
             get
             {
+                if (_cachedServerIcon != null) return _cachedServerIcon;
                 if (string.IsNullOrEmpty(IconBase64)) return null;
 
                 try
@@ -149,7 +160,8 @@ namespace Minecraft_Server_Manager.Models
                     bi.CacheOption = BitmapCacheOption.OnLoad;
                     bi.EndInit();
                     bi.Freeze();
-                    return bi;
+                    _cachedServerIcon = bi;
+                    return _cachedServerIcon;
                 }
                 catch
                 {
@@ -162,6 +174,7 @@ namespace Minecraft_Server_Manager.Models
         #region Methods
         /// <summary>
         /// Ajoute un log au cache et déclenche l'événement pour l'UI.
+        /// Tronque le cache si la taille dépasse la limite.
         /// </summary>
         public void AddLog(string data)
         {
@@ -170,6 +183,16 @@ namespace Minecraft_Server_Manager.Models
             lock (CachedLogs)
             {
                 CachedLogs.AppendLine(data);
+
+                // Tronquer le cache si trop volumineux pour éviter les OutOfMemoryException
+                if (CachedLogs.Length > MaxCachedLogsLength)
+                {
+                    // Garder la moitié la plus récente
+                    int startIndex = CachedLogs.Length - (MaxCachedLogsLength / 2);
+                    string recentLogs = CachedLogs.ToString(startIndex, CachedLogs.Length - startIndex);
+                    CachedLogs.Clear();
+                    CachedLogs.Append(recentLogs);
+                }
             }
 
             LogReceived?.Invoke(data);

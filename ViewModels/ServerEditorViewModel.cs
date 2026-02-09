@@ -590,9 +590,10 @@ namespace Minecraft_Server_Manager.ViewModels
                     {
                         try
                         {
-                            if (player is OpPlayer opPlayer)
+                            // Fix : utiliser WhitelistPlayer au lieu de OpPlayer
+                            if (player is WhitelistPlayer whitelistPlayer)
                             {
-                                _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"whitelist remove {opPlayer.Name}");
+                                _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"whitelist remove {whitelistPlayer.Name}");
                             }
                         }
                         catch

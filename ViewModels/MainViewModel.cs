@@ -18,6 +18,7 @@ namespace Minecraft_Server_Manager.ViewModels
         #region Fields
         private object _currentView;
         private bool _showSidebar = true;
+        private bool _isLoading = false;
         #endregion
 
         #region Properties
@@ -41,7 +42,17 @@ namespace Minecraft_Server_Manager.ViewModels
         public object CurrentView
         {
             get { return _currentView; }
-            set { _currentView = value; OnPropertyChanged(); }
+            set
+            {
+                // Cleanup de l'ancien ViewModel pour éviter les fuites mémoire
+                if (_currentView is ServerMonitorViewModel oldMonitorVm)
+                {
+                    oldMonitorVm.Cleanup();
+                }
+
+                _currentView = value;
+                OnPropertyChanged();
+            }
         }
         #endregion
 
@@ -57,7 +68,8 @@ namespace Minecraft_Server_Manager.ViewModels
         #region Constructor
         public MainViewModel()
         {
-            var themeLoader = new SettingsViewModel();
+            // Appliquer le thème sauvegardé sans instancier un SettingsViewModel complet
+            ApplySavedTheme();
 
             Servers = new ObservableCollection<ServerProfile>();
 
@@ -73,6 +85,32 @@ namespace Minecraft_Server_Manager.ViewModels
             LoadServers();
 
             ShowHome();
+        }
+        #endregion
+
+        #region Theme Initialization
+        private void ApplySavedTheme()
+        {
+            ConfigManager.Load();
+
+            var themes = new Dictionary<string, (string Primary, string Secondary)>
+            {
+                ["Dark Blue"] = ("#2c3e50", "#34495e"),
+                ["Midnight Black"] = ("#000000", "#1a1a1a"),
+                ["Forest Green"] = ("#1e392a", "#27ae60"),
+                ["Deep Purple"] = ("#4a235a", "#8e44ad"),
+                ["Ocean Blue"] = ("#154360", "#2980b9")
+            };
+
+            string themeName = ConfigManager.Settings.SelectedTheme ?? "Dark Blue";
+            if (themes.TryGetValue(themeName, out var colors))
+            {
+                var primaryColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colors.Primary);
+                var secondaryColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(colors.Secondary);
+
+                System.Windows.Application.Current.Resources["PrimaryBrush"] = new System.Windows.Media.SolidColorBrush(primaryColor);
+                System.Windows.Application.Current.Resources["SecondaryBrush"] = new System.Windows.Media.SolidColorBrush(secondaryColor);
+            }
         }
         #endregion
 
@@ -110,6 +148,9 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private void Servers_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            // Ne pas sauvegarder pendant le chargement initial
+            if (_isLoading) return;
+
             if (e.Action == NotifyCollectionChangedAction.Add)
             {
                 if (e.NewItems != null)
@@ -130,22 +171,30 @@ namespace Minecraft_Server_Manager.ViewModels
 
             string[] files = Directory.GetFiles(appDataPath, "*.json");
 
-            foreach (string file in files)
+            _isLoading = true;
+            try
             {
-                try
+                foreach (string file in files)
                 {
-                    string jsonString = File.ReadAllText(file);
-                    ServerProfile profile = JsonSerializer.Deserialize<ServerProfile>(jsonString);
-
-                    if (profile != null)
+                    try
                     {
-                        Servers.Add(profile);
+                        string jsonString = File.ReadAllText(file);
+                        ServerProfile profile = JsonSerializer.Deserialize<ServerProfile>(jsonString);
+
+                        if (profile != null)
+                        {
+                            Servers.Add(profile);
+                        }
+                    }
+                    catch
+                    {
+
                     }
                 }
-                catch
-                {
-
-                }
+            }
+            finally
+            {
+                _isLoading = false;
             }
         }
 
@@ -153,7 +202,7 @@ namespace Minecraft_Server_Manager.ViewModels
         {
             var dialog = new OpenFolderDialog
             {
-                Title = ResourceHelper.GetString("Loc_SelectRootFolder"), // "Sélectionnez le dossier racine..."
+                Title = ResourceHelper.GetString("Loc_SelectRootFolder"),
                 Multiselect = false
             };
 
@@ -242,6 +291,12 @@ namespace Minecraft_Server_Manager.ViewModels
         /// </summary>
         public async Task StopAllServersAsync()
         {
+            // Cleanup du ViewModel courant
+            if (_currentView is ServerMonitorViewModel monitorVm)
+            {
+                monitorVm.Cleanup();
+            }
+
             var tasks = new List<Task>();
 
             foreach (var server in Servers)
@@ -265,6 +320,10 @@ namespace Minecraft_Server_Manager.ViewModels
                                     server.ServerProcess.Kill();
                                 }
                             }
+
+                            // Dispose du Process après l'arrêt
+                            server.ServerProcess?.Dispose();
+                            server.ServerProcess = null;
                         }
                         catch
                         {

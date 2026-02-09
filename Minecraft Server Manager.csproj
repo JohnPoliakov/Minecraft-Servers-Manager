@@ -46,10 +46,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Resources\MSM.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Resource Include="Resources\curseforge.png" />
     <Resource Include="Resources\Flags\flag-de.png" />
     <Resource Include="Resources\Flags\flag-es.png" />

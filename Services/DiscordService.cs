@@ -34,7 +34,7 @@ namespace Minecraft_Server_Manager.Services
                 };
 
                 string json = JsonSerializer.Serialize(payload);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
                 await _httpClient.PostAsync(webhookUrl, content);
             }

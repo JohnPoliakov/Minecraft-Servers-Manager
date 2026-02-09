@@ -30,6 +30,21 @@ namespace Minecraft_Server_Manager.ViewModels
         private static readonly Regex _logoutRegex = new Regex(
             @":\s+([a-zA-Z0-9_]+).*\s+left the game",
             RegexOptions.Compiled);
+
+        // Brushes statiques Frozen pour StatusColor (évite une allocation à chaque accès)
+        private static readonly SolidColorBrush BrushRunning;
+        private static readonly SolidColorBrush BrushStopped;
+
+        private const int MaxCommandHistory = 100;
+
+        static ServerMonitorViewModel()
+        {
+            BrushRunning = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#27ae60"));
+            BrushRunning.Freeze();
+
+            BrushStopped = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#7f8c8d"));
+            BrushStopped.Freeze();
+        }
         #endregion
 
         #region Fields
@@ -44,6 +59,7 @@ namespace Minecraft_Server_Manager.ViewModels
         // State Vars
         private bool _isRestarting = false;
         private bool _isIntentionalStop = false;
+        private bool _isStartingOrStopping = false;
 
         // Console History
         private List<string> _commandHistory = new List<string>();
@@ -93,7 +109,8 @@ namespace Minecraft_Server_Manager.ViewModels
                     OnPropertyChanged(nameof(StatusColor));
 
                     // Déclenche le démarrage/arrêt si le switch est activé manuellement
-                    if (IsSwitchEnabled)
+                    // Guard contre la boucle récursive
+                    if (IsSwitchEnabled && !_isStartingOrStopping)
                     {
                         if (value) StartServer();
                         else StopServer();
@@ -102,9 +119,7 @@ namespace Minecraft_Server_Manager.ViewModels
             }
         }
 
-        public System.Windows.Media.Brush StatusColor => IsRunning
-             ? new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#27ae60")) // Vert
-             : new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#7f8c8d")); // Gris
+        public System.Windows.Media.Brush StatusColor => IsRunning ? BrushRunning : BrushStopped;
 
         private string _uptimeText = "00:00:00";
         public string UptimeText
@@ -181,7 +196,11 @@ namespace Minecraft_Server_Manager.ViewModels
 
             LoadImageFromBase64();
             ParseMaxRam();
-            ServerLogs = _serverProfile.CachedLogs.ToString();
+
+            lock (_serverProfile.CachedLogs)
+            {
+                ServerLogs = _serverProfile.CachedLogs.ToString();
+            }
 
             _serverProfile.LogReceived += OnNewLogReceived;
 
@@ -197,7 +216,11 @@ namespace Minecraft_Server_Manager.ViewModels
 
             if (_serverProfile.ServerProcess != null && !_serverProfile.ServerProcess.HasExited)
             {
+                _isStartingOrStopping = true;
                 _serverProfile.IsRunning = true;
+                OnPropertyChanged(nameof(IsRunning));
+                OnPropertyChanged(nameof(StatusColor));
+                _isStartingOrStopping = false;
                 _monitorTimer.Start();
             }
 
@@ -208,185 +231,227 @@ namespace Minecraft_Server_Manager.ViewModels
         }
         #endregion
 
+        #region Cleanup (Désabonnement événements & timer)
+        /// <summary>
+        /// Désabonne tous les événements et arrête le timer pour éviter les fuites mémoire.
+        /// Doit être appelé lorsque le ViewModel n'est plus affiché.
+        /// </summary>
+        public void Cleanup()
+        {
+            _monitorTimer.Stop();
+            _monitorTimer.Tick -= UpdateStats;
+
+            _serverProfile.LogReceived -= OnNewLogReceived;
+
+            _commandLock.Dispose();
+        }
+        #endregion
+
         #region Server Lifecycle Management (Start/Stop/Restart)
         private async void StartServer()
         {
             if (_serverProfile.ServerProcess != null && !_serverProfile.ServerProcess.HasExited) return;
 
-            string eulaPath = Path.Combine(_serverProfile.FolderPath, "eula.txt");
-            bool needsEulaAgreement = false;
+            _isStartingOrStopping = true;
 
-            if (File.Exists(eulaPath))
+            try
             {
-                string content = await Task.Run(() => File.ReadAllText(eulaPath));
-                if (content.Contains("eula=false"))
+                string eulaPath = Path.Combine(_serverProfile.FolderPath, "eula.txt");
+                bool needsEulaAgreement = false;
+
+                if (File.Exists(eulaPath))
                 {
-                    needsEulaAgreement = true;
-                }
-            }
-
-            if (needsEulaAgreement)
-            {
-                bool accepted = false;
-
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    var result = CustomMessageBox.Show(
-                        ResourceHelper.GetString("Loc_EulaMsg"),
-                        ResourceHelper.GetString("Loc_EulaTitle"),
-                        MessageBoxType.Confirmation);
-
-                    accepted = (result == true);
-                });
-
-                if (accepted)
-                {
-                    string[] lines = await Task.Run(() => File.ReadAllLines(eulaPath));
-                    for (int i = 0; i < lines.Length; i++)
+                    string content = await Task.Run(() => File.ReadAllText(eulaPath));
+                    if (content.Contains("eula=false"))
                     {
-                        if (lines[i].Trim() == "eula=false") lines[i] = "eula=true";
+                        needsEulaAgreement = true;
                     }
-                    await Task.Run(() => File.WriteAllLines(eulaPath, lines));
-                    _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogEulaAccepted"));
                 }
-                else
+
+                if (needsEulaAgreement)
                 {
-                    _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogEulaRefused"));
-                    return;
-                }
-            }
-
-            if (_serverProfile.ClearLogsOnStart)
-            {
-                lock (_serverProfile.CachedLogs)
-                {
-                    _serverProfile.CachedLogs.Clear();
-                }
-                ServerLogs = "";
-
-                System.Windows.Application.Current.Dispatcher.Invoke(() =>
-                {
-                    ClearLogsRequested?.Invoke();
-                });
-            }
-
-            _isIntentionalStop = false;
-            SetBusyState(true);
-            _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogStart") + "\n");
-
-            await Task.Run(async () =>
-            {
-                try
-                {
-                    ProcessStartInfo psi;
-
-                    string javaExec = string.IsNullOrWhiteSpace(_serverProfile.JdkPath) ? "java" : _serverProfile.JdkPath;
-
-                    if (_serverProfile.LaunchMode == "Batch")
-                    {
-                        string originalBatPath = Path.Combine(_serverProfile.FolderPath, _serverProfile.BatchFilename);
-
-                        if (!File.Exists(originalBatPath))
-                        {
-                            throw new FileNotFoundException($"Script introuvable : {originalBatPath}");
-                        }
-
-                        string batContent = await File.ReadAllTextAsync(originalBatPath);
-
-                        string sanitizedJavaPath = $"\"{javaExec}\"";
-                        string modifiedContent = System.Text.RegularExpressions.Regex.Replace(
-                            batContent,
-                            @"\bjava\b",
-                            sanitizedJavaPath,
-                            System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-
-                        string tempBatPath = Path.Combine(_serverProfile.FolderPath, "msm_launcher_temp.bat");
-                        await File.WriteAllTextAsync(tempBatPath, modifiedContent);
-
-                        psi = new ProcessStartInfo
-                        {
-                            FileName = "cmd.exe",
-                            Arguments = $"/c \"{tempBatPath}\"",
-                            WorkingDirectory = _serverProfile.FolderPath,
-                            CreateNoWindow = true,
-                            UseShellExecute = false,
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            RedirectStandardInput = true
-                        };
-                    }
-                    else
-                    {
-                        string args = $"{_serverProfile.JvmArguments} -jar \"{_serverProfile.JarName}\" nogui";
-
-                        psi = new ProcessStartInfo
-                        {
-                            FileName = javaExec,
-                            Arguments = args,
-                            WorkingDirectory = _serverProfile.FolderPath,
-                            CreateNoWindow = true,
-                            UseShellExecute = false,
-                            RedirectStandardOutput = true,
-                            RedirectStandardError = true,
-                            RedirectStandardInput = true
-                        };
-                    }
-
-                    _serverProfile.ServerProcess = new Process { StartInfo = psi };
-
-                    _serverProfile.ServerProcess.OutputDataReceived += (s, e) => _serverProfile.AddLog(e.Data);
-                    _serverProfile.ServerProcess.ErrorDataReceived += (s, e) => _serverProfile.AddLog(e.Data);
-                    _serverProfile.ServerProcess.EnableRaisingEvents = true;
-                    _serverProfile.ServerProcess.Exited += OnServerProcessExited;
-
-                    _serverProfile.ServerProcess.Start();
-
-                    try { _serverProfile.ServerProcess.PriorityClass = ProcessPriorityClass.High; } catch { }
-
-                    _serverProfile.IsRunning = true;
-                    OnPropertyChanged(nameof(IsRunning));
-                    OnPropertyChanged(nameof(StatusColor));
-
-                    _serverProfile.ServerProcess.BeginOutputReadLine();
-                    _serverProfile.ServerProcess.BeginErrorReadLine();
+                    bool accepted = false;
 
                     System.Windows.Application.Current.Dispatcher.Invoke(() =>
                     {
-                        ConnectedPlayers.Clear();
-                        OnPropertyChanged(nameof(PlayerCount));
+                        var result = CustomMessageBox.Show(
+                            ResourceHelper.GetString("Loc_EulaMsg"),
+                            ResourceHelper.GetString("Loc_EulaTitle"),
+                            MessageBoxType.Confirmation);
+
+                        accepted = (result == true);
                     });
 
-                    _lastTimerTick = DateTime.MinValue;
-                    _monitorTimer.Start();
-                    _serverProfile.PlayerCount = 0;
-
-                    SetBusyState(false);
-
-                    await Task.Delay(5000);
-                    _ = DiscordService.SendNotification(_serverProfile.DiscordWebhookUrl,
-                        ResourceHelper.GetString("Loc_ServerStartedTitle"),
-                        string.Format(ResourceHelper.GetString("Loc_ServerStartedMsg"), DisplayName),
-                        DiscordService.ColorGreen);
+                    if (accepted)
+                    {
+                        string[] lines = await Task.Run(() => File.ReadAllLines(eulaPath));
+                        for (int i = 0; i < lines.Length; i++)
+                        {
+                            if (lines[i].Trim() == "eula=false") lines[i] = "eula=true";
+                        }
+                        await Task.Run(() => File.WriteAllLines(eulaPath, lines));
+                        _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogEulaAccepted"));
+                    }
+                    else
+                    {
+                        _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogEulaRefused"));
+                        return;
+                    }
                 }
-                catch (Exception ex)
+
+                if (_serverProfile.ClearLogsOnStart)
                 {
-                    _serverProfile.AddLog($"[ERREUR] {ex.Message}");
-                    IsRunning = false;
-                    SetBusyState(false);
+                    lock (_serverProfile.CachedLogs)
+                    {
+                        _serverProfile.CachedLogs.Clear();
+                    }
+                    ServerLogs = "";
+
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        ClearLogsRequested?.Invoke();
+                    });
                 }
-            });
+
+                _isIntentionalStop = false;
+                SetBusyState(true);
+                _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogStart") + "\n");
+
+                await Task.Run(async () =>
+                {
+                    try
+                    {
+                        ProcessStartInfo psi;
+
+                        string javaExec = string.IsNullOrWhiteSpace(_serverProfile.JdkPath) ? "java" : _serverProfile.JdkPath;
+
+                        if (_serverProfile.LaunchMode == "Batch")
+                        {
+                            string originalBatPath = Path.Combine(_serverProfile.FolderPath, _serverProfile.BatchFilename);
+
+                            if (!File.Exists(originalBatPath))
+                            {
+                                throw new FileNotFoundException($"Script introuvable : {originalBatPath}");
+                            }
+
+                            string batContent = await File.ReadAllTextAsync(originalBatPath);
+
+                            string sanitizedJavaPath = $"\"{javaExec}\"";
+                            string modifiedContent = System.Text.RegularExpressions.Regex.Replace(
+                                batContent,
+                                @"\bjava\b",
+                                sanitizedJavaPath,
+                                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                            string tempBatPath = Path.Combine(_serverProfile.FolderPath, "msm_launcher_temp.bat");
+                            await File.WriteAllTextAsync(tempBatPath, modifiedContent);
+
+                            psi = new ProcessStartInfo
+                            {
+                                FileName = "cmd.exe",
+                                Arguments = $"/c \"{tempBatPath}\"",
+                                WorkingDirectory = _serverProfile.FolderPath,
+                                CreateNoWindow = true,
+                                UseShellExecute = false,
+                                RedirectStandardOutput = true,
+                                RedirectStandardError = true,
+                                RedirectStandardInput = true
+                            };
+                        }
+                        else
+                        {
+                            string args = $"{_serverProfile.JvmArguments} -jar \"{_serverProfile.JarName}\" nogui";
+
+                            psi = new ProcessStartInfo
+                            {
+                                FileName = javaExec,
+                                Arguments = args,
+                                WorkingDirectory = _serverProfile.FolderPath,
+                                CreateNoWindow = true,
+                                UseShellExecute = false,
+                                RedirectStandardOutput = true,
+                                RedirectStandardError = true,
+                                RedirectStandardInput = true
+                            };
+                        }
+
+                        var oldProcess = _serverProfile.ServerProcess;
+                        _serverProfile.ServerProcess = new Process { StartInfo = psi };
+
+                        // Dispose de l'ancien Process si existant
+                        oldProcess?.Dispose();
+
+                        _serverProfile.ServerProcess.OutputDataReceived += (s, e) => _serverProfile.AddLog(e.Data);
+                        _serverProfile.ServerProcess.ErrorDataReceived += (s, e) => _serverProfile.AddLog(e.Data);
+                        _serverProfile.ServerProcess.EnableRaisingEvents = true;
+                        _serverProfile.ServerProcess.Exited += OnServerProcessExited;
+
+                        _serverProfile.ServerProcess.Start();
+
+                        try { _serverProfile.ServerProcess.PriorityClass = ProcessPriorityClass.High; } catch { }
+
+                        _serverProfile.IsRunning = true;
+                        OnPropertyChanged(nameof(IsRunning));
+                        OnPropertyChanged(nameof(StatusColor));
+
+                        _serverProfile.ServerProcess.BeginOutputReadLine();
+                        _serverProfile.ServerProcess.BeginErrorReadLine();
+
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            ConnectedPlayers.Clear();
+                            OnPropertyChanged(nameof(PlayerCount));
+                        });
+
+                        _lastTimerTick = DateTime.MinValue;
+                        System.Windows.Application.Current.Dispatcher.Invoke(() => _monitorTimer.Start());
+                        _serverProfile.PlayerCount = 0;
+
+                        SetBusyState(false);
+
+                        await Task.Delay(5000);
+                        _ = DiscordService.SendNotification(_serverProfile.DiscordWebhookUrl,
+                            ResourceHelper.GetString("Loc_ServerStartedTitle"),
+                            string.Format(ResourceHelper.GetString("Loc_ServerStartedMsg"), DisplayName),
+                            DiscordService.ColorGreen);
+                    }
+                    catch (Exception ex)
+                    {
+                        _serverProfile.AddLog($"[ERREUR] {ex.Message}");
+                        System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                        {
+                            _isStartingOrStopping = true;
+                            IsRunning = false;
+                            _isStartingOrStopping = false;
+                        });
+                        SetBusyState(false);
+                    }
+                });
+            }
+            finally
+            {
+                _isStartingOrStopping = false;
+            }
         }
 
         private void StopServer()
         {
             if (_serverProfile.ServerProcess == null || _serverProfile.ServerProcess.HasExited) return;
 
-            _isIntentionalStop = true;
-            _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogStopRequested"));
-            SetBusyState(true);
+            _isStartingOrStopping = true;
+            try
+            {
+                _isIntentionalStop = true;
+                _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogStopRequested"));
+                SetBusyState(true);
 
-            KickAll(ResourceHelper.GetString("Loc_KickReason"));
-            ExecuteConsoleCommand("stop");
+                KickAll(ResourceHelper.GetString("Loc_KickReason"));
+                ExecuteConsoleCommand("stop");
+            }
+            finally
+            {
+                _isStartingOrStopping = false;
+            }
         }
 
         private void PerformRestart()
@@ -413,20 +478,36 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private async void OnServerProcessExited(object sender, EventArgs e)
         {
-
             try
             {
-
                 if (System.Windows.Application.Current == null) return;
+
+                // Dispose du Process terminé
+                var exitedProcess = sender as Process;
 
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
                     _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogServerStopped"));
+
+                    _isStartingOrStopping = true;
                     IsRunning = false;
+                    _isStartingOrStopping = false;
+
                     _monitorTimer.Stop();
                     SetBusyState(false);
                     _serverProfile.PlayerCount = 0;
                 });
+
+                // Dispose du Process après l'arrêt
+                if (exitedProcess != null)
+                {
+                    exitedProcess.Exited -= OnServerProcessExited;
+                    exitedProcess.Dispose();
+                    if (_serverProfile.ServerProcess == exitedProcess)
+                    {
+                        _serverProfile.ServerProcess = null;
+                    }
+                }
 
                 if (_isRestarting)
                 {
@@ -463,9 +544,9 @@ namespace Minecraft_Server_Manager.ViewModels
                 int exitCode = -1;
                 try
                 {
-                    if (_serverProfile.ServerProcess != null)
+                    if (exitedProcess != null)
                     {
-                        exitCode = _serverProfile.ServerProcess.ExitCode;
+                        exitCode = exitedProcess.ExitCode;
                     }
                     _ = DiscordService.SendNotification(_serverProfile.DiscordWebhookUrl,
                         ResourceHelper.GetString("Loc_CrashTitle"),
@@ -503,10 +584,12 @@ namespace Minecraft_Server_Manager.ViewModels
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Erreur FATALE dans OnServerProcessExited : {ex.Message}\n{ex.StackTrace}");
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine($"Erreur dans OnServerProcessExited : {ex.Message}\n{ex.StackTrace}");
+                }
+                catch { }
             }
-
-
         }
         #endregion
 
@@ -538,13 +621,18 @@ namespace Minecraft_Server_Manager.ViewModels
 
             if (CpuSeries == null || RamSeries == null) return;
 
+            // Collecte des métriques sur un thread de fond
+            double cpuUsageTotal = -1;
+            double ramUsedMb = 0;
+            string uptimeStr = null;
+
             await Task.Run(() =>
             {
                 try
                 {
                     _serverProfile.ServerProcess.Refresh();
 
-                    UptimeText = (DateTime.Now - _serverProfile.ServerProcess.StartTime).ToString(@"hh\:mm\:ss");
+                    uptimeStr = (DateTime.Now - _serverProfile.ServerProcess.StartTime).ToString(@"hh\:mm\:ss");
 
                     // --- CPU Calcul ---
                     var currentTime = DateTime.Now;
@@ -554,28 +642,36 @@ namespace Minecraft_Server_Manager.ViewModels
                     {
                         double cpuUsedMs = (currentTotalProcessorTime - _lastTotalProcessorTime).TotalMilliseconds;
                         double totalMsPassed = (currentTime - _lastTimerTick).TotalMilliseconds;
-                        double cpuUsageTotal = (cpuUsedMs / (totalMsPassed * Environment.ProcessorCount)) * 100;
+                        cpuUsageTotal = (cpuUsedMs / (totalMsPassed * Environment.ProcessorCount)) * 100;
                         cpuUsageTotal = Math.Max(0, Math.Min(100, cpuUsageTotal));
-
-                        CpuSeries[0].Values[0] = cpuUsageTotal;
-                        CpuSeries[1].Values[0] = 100 - cpuUsageTotal;
-                        CpuUsageText = $"{cpuUsageTotal:F0} %";
                     }
 
                     _lastTotalProcessorTime = currentTotalProcessorTime;
                     _lastTimerTick = currentTime;
 
                     // --- RAM Calcul ---
-                    double ramUsedMb = _serverProfile.ServerProcess.WorkingSet64 / 1024.0 / 1024.0;
-
-                    RamSeries[0].Values[0] = ramUsedMb;
-                    RamSeries[1].Values[0] = Math.Max(0, _maxRamMb - ramUsedMb);
-
-                    RamUsageText = $"{ramUsedMb:F0} MB";
-                    RamDetailText = $"{ramUsedMb:F0} / {_maxRamMb} MB";
+                    ramUsedMb = _serverProfile.ServerProcess.WorkingSet64 / 1024.0 / 1024.0;
                 }
                 catch { }
             });
+
+            // Mise à jour UI sur le thread dispatcher (on est déjà dessus car DispatcherTimer)
+            if (uptimeStr != null)
+            {
+                UptimeText = uptimeStr;
+            }
+
+            if (cpuUsageTotal >= 0)
+            {
+                CpuSeries[0].Values[0] = cpuUsageTotal;
+                CpuSeries[1].Values[0] = 100 - cpuUsageTotal;
+                CpuUsageText = $"{cpuUsageTotal:F0} %";
+            }
+
+            RamSeries[0].Values[0] = ramUsedMb;
+            RamSeries[1].Values[0] = Math.Max(0, _maxRamMb - ramUsedMb);
+            RamUsageText = $"{ramUsedMb:F0} MB";
+            RamDetailText = $"{ramUsedMb:F0} / {_maxRamMb} MB";
 
             if (_serverProfile.AutoRestartEnabled && IsRunning && !_isRestarting)
             {
@@ -609,7 +705,10 @@ namespace Minecraft_Server_Manager.ViewModels
         #region Console & Log Handling
         private void OnNewLogReceived(string text)
         {
-            System.Windows.Application.Current.Dispatcher.Invoke(() =>
+            if (System.Windows.Application.Current == null) return;
+
+            // Utiliser InvokeAsync au lieu de Invoke pour ne pas bloquer le thread producteur
+            System.Windows.Application.Current.Dispatcher.InvokeAsync(() =>
             {
                 LogEntryReceived?.Invoke(text);
 
@@ -649,6 +748,13 @@ namespace Minecraft_Server_Manager.ViewModels
             if (_serverProfile.ServerProcess == null || _serverProfile.ServerProcess.HasExited) return;
 
             _commandHistory.Add(cmd);
+
+            // Limiter la taille de l'historique pour éviter une croissance mémoire illimitée
+            if (_commandHistory.Count > MaxCommandHistory)
+            {
+                _commandHistory.RemoveAt(0);
+            }
+
             _historyIndex = _commandHistory.Count;
             CommandInput = "";
 
@@ -660,6 +766,7 @@ namespace Minecraft_Server_Manager.ViewModels
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Erreur commande console : {ex.Message}");
             }
             finally
             {
@@ -702,9 +809,9 @@ namespace Minecraft_Server_Manager.ViewModels
             string timeStamp = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
             string zipPath = Path.Combine(backupDir, $"Backup_{timeStamp}.zip");
 
-            await Task.Run(async () =>
+            try
             {
-                try
+                await Task.Run(async () =>
                 {
                     bool wasRunning = IsRunning;
 
@@ -735,7 +842,8 @@ namespace Minecraft_Server_Manager.ViewModels
                     using (ZipArchive archive = ZipFile.Open(zipPath, ZipArchiveMode.Create))
                     {
                         DirectoryInfo dirInfo = new DirectoryInfo(_serverProfile.FolderPath);
-                        foreach (var file in dirInfo.GetFiles("*", SearchOption.AllDirectories))
+                        // Utiliser EnumerateFiles au lieu de GetFiles pour éviter de charger tout l'arbre en mémoire
+                        foreach (var file in dirInfo.EnumerateFiles("*", SearchOption.AllDirectories))
                         {
                             if (file.FullName.Contains("Backups") || file.Name == "session.lock") continue;
 
@@ -751,13 +859,13 @@ namespace Minecraft_Server_Manager.ViewModels
                         ExecuteConsoleCommand("save-on");
                         _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogSaveOn"));
                     }
-                }
-                catch (Exception ex)
-                {
-                    _serverProfile.AddLog(string.Format(ResourceHelper.GetString("Loc_BackupError"), ex.Message));
-                    if (IsRunning) ExecuteConsoleCommand("save-on");
-                }
-            });
+                });
+            }
+            catch (Exception ex)
+            {
+                _serverProfile.AddLog(string.Format(ResourceHelper.GetString("Loc_BackupError"), ex.Message));
+                if (IsRunning) ExecuteConsoleCommand("save-on");
+            }
 
             SetBusyState(false);
         }

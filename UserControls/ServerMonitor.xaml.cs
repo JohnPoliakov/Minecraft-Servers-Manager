@@ -16,6 +16,33 @@ namespace Minecraft_Server_Manager.UserControls
         // Système de file d'attente pour éviter de surcharger le Thread UI
         private ConcurrentQueue<string> _logQueue = new ConcurrentQueue<string>();
         private DispatcherTimer _logUpdateTimer;
+
+        // Brushes statiques réutilisables (Frozen = thread-safe + pas de leak)
+        private static readonly SolidColorBrush BrushError;
+        private static readonly SolidColorBrush BrushWarning;
+        private static readonly SolidColorBrush BrushInfo;
+        private static readonly SolidColorBrush BrushPlayer;
+        private static readonly SolidColorBrush BrushDefault;
+        #endregion
+
+        #region Static Constructor
+        static ServerMonitor()
+        {
+            BrushError = new SolidColorBrush(System.Windows.Media.Color.FromRgb(231, 76, 60));
+            BrushError.Freeze();
+
+            BrushWarning = new SolidColorBrush(System.Windows.Media.Color.FromRgb(241, 196, 15));
+            BrushWarning.Freeze();
+
+            BrushInfo = new SolidColorBrush(System.Windows.Media.Color.FromRgb(236, 240, 241));
+            BrushInfo.Freeze();
+
+            BrushPlayer = new SolidColorBrush(System.Windows.Media.Color.FromRgb(46, 204, 113));
+            BrushPlayer.Freeze();
+
+            BrushDefault = new SolidColorBrush(System.Windows.Media.Color.FromRgb(189, 195, 199));
+            BrushDefault.Freeze();
+        }
         #endregion
 
         #region Constructor
@@ -25,6 +52,7 @@ namespace Minecraft_Server_Manager.UserControls
 
             this.DataContextChanged += OnDataContextChanged;
             this.Loaded += OnViewLoaded;
+            this.Unloaded += OnViewUnloaded;
 
             _logUpdateTimer = new DispatcherTimer();
             _logUpdateTimer.Interval = TimeSpan.FromMilliseconds(100);
@@ -50,6 +78,22 @@ namespace Minecraft_Server_Manager.UserControls
 
                 vm.LogEntryReceived += EnqueueLog;
                 vm.ClearLogsRequested += ClearConsole;
+
+                // Redémarrer le timer si nécessaire
+                if (!_logUpdateTimer.IsEnabled)
+                    _logUpdateTimer.Start();
+            }
+        }
+
+        private void OnViewUnloaded(object sender, RoutedEventArgs e)
+        {
+            // Arrêter le timer quand le contrôle n'est plus visible
+            _logUpdateTimer.Stop();
+
+            if (_currentVm != null)
+            {
+                _currentVm.LogEntryReceived -= EnqueueLog;
+                _currentVm.ClearLogsRequested -= ClearConsole;
             }
         }
         #endregion
@@ -105,6 +149,7 @@ namespace Minecraft_Server_Manager.UserControls
         #region UI Formatting & Coloring
         /// <summary>
         /// Crée un paragraphe coloré et l'ajoute au RichTextBox.
+        /// Utilise des Brushes statiques Frozen pour éviter les allocations.
         /// </summary>
         private void AppendColoredLogInternal(string text)
         {
@@ -115,29 +160,24 @@ namespace Minecraft_Server_Manager.UserControls
 
             if (text.Contains("ERROR") || text.Contains("Exception") || text.Contains("Error"))
             {
-                // Rouge
-                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(231, 76, 60));
+                paragraph.Foreground = BrushError;
                 paragraph.FontWeight = FontWeights.Bold;
             }
             else if (text.Contains("WARN") || text.Contains("Warning"))
             {
-                // Jaune
-                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(241, 196, 15));
+                paragraph.Foreground = BrushWarning;
             }
             else if (text.Contains("INFO"))
             {
-                // Blanc cassé
-                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(236, 240, 241));
+                paragraph.Foreground = BrushInfo;
             }
             else if (text.Contains("joined the game") || text.Contains("left the game"))
             {
-                // Vert
-                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(46, 204, 113));
+                paragraph.Foreground = BrushPlayer;
             }
             else
             {
-                // Gris
-                paragraph.Foreground = new SolidColorBrush(System.Windows.Media.Color.FromRgb(189, 195, 199));
+                paragraph.Foreground = BrushDefault;
             }
 
             // --- Ajout au document ---

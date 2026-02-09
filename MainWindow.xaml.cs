@@ -8,8 +8,8 @@ namespace Minecraft_Server_Manager
 {
     public partial class MainWindow : Window
     {
-        private NotifyIcon _notifyIcon;
-        private ToolStripMenuItem _exitMenuItem;
+        private System.Windows.Forms.NotifyIcon _notifyIcon;
+        private System.Windows.Forms.ToolStripMenuItem _exitMenuItem;
         private bool _isReallyExiting = false;
         private bool _isCleanedUp = false;
         public MainWindow()
@@ -29,26 +29,33 @@ namespace Minecraft_Server_Manager
         private void InitializeSystemTray()
         {
 
-            _notifyIcon = new NotifyIcon();
+            _notifyIcon = new System.Windows.Forms.NotifyIcon();
 
             try
             {
-                Uri iconUri = new Uri("pack://application:,,,/Resources/MSM.ico");
-
-                System.Windows.Resources.StreamResourceInfo info = System.Windows.Application.GetResourceStream(iconUri);
-
-                if (info != null)
+                // Charger l'icône depuis l'exécutable lui-même (ApplicationIcon du .csproj)
+                // Cela garantit la même icône que le .exe et la barre des tâches
+                string? exePath = Environment.ProcessPath;
+                if (!string.IsNullOrEmpty(exePath) && System.IO.File.Exists(exePath))
                 {
-                    _notifyIcon.Icon = new Icon(info.Stream);
+                    System.Drawing.Icon? exeIcon = System.Drawing.Icon.ExtractAssociatedIcon(exePath);
+                    if (exeIcon != null)
+                    {
+                        _notifyIcon.Icon = new System.Drawing.Icon(exeIcon, System.Windows.Forms.SystemInformation.SmallIconSize);
+                    }
+                    else
+                    {
+                        _notifyIcon.Icon = System.Drawing.SystemIcons.Application;
+                    }
                 }
                 else
                 {
-                    _notifyIcon.Icon = SystemIcons.Application;
+                    _notifyIcon.Icon = System.Drawing.SystemIcons.Application;
                 }
             }
             catch
             {
-                _notifyIcon.Icon = SystemIcons.Application;
+                _notifyIcon.Icon = System.Drawing.SystemIcons.Application;
             }
 
             _notifyIcon.Visible = true;
@@ -56,8 +63,8 @@ namespace Minecraft_Server_Manager
 
             _notifyIcon.DoubleClick += (s, e) => ShowWindow();
 
-            var contextMenu = new ContextMenuStrip();
-            _exitMenuItem = new ToolStripMenuItem(ResourceHelper.GetString("Loc_TrayExit"));
+            var contextMenu = new System.Windows.Forms.ContextMenuStrip();
+            _exitMenuItem = new System.Windows.Forms.ToolStripMenuItem(ResourceHelper.GetString("Loc_TrayExit"));
             _exitMenuItem.Click += (s, e) =>
             {
                 _isReallyExiting = true;
@@ -100,7 +107,7 @@ namespace Minecraft_Server_Manager
                 _notifyIcon.ShowBalloonTip(1000,
                     ResourceHelper.GetString("Loc_TrayBackgroundTitle"),
                     ResourceHelper.GetString("Loc_TrayBackgroundMsg"),
-                    ToolTipIcon.Info);
+                    System.Windows.Forms.ToolTipIcon.Info);
                 return;
             }
 
@@ -113,7 +120,7 @@ namespace Minecraft_Server_Manager
                 _notifyIcon.ShowBalloonTip(2500,
                     ResourceHelper.GetString("Loc_TrayClosingTitle"),
                     ResourceHelper.GetString("Loc_TrayClosingMsg"),
-                    ToolTipIcon.Info);
+                    System.Windows.Forms.ToolTipIcon.Info);
 
                 if (this.DataContext is MainViewModel vm)
                 {
