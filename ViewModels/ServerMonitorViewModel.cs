@@ -265,6 +265,25 @@ namespace Minecraft_Server_Manager.ViewModels
 
             try
             {
+                // --- Point 4 : Validation du profil avant lancement ---
+                var validationErrors = Services.ProfileValidationService.Validate(_serverProfile);
+                if (validationErrors.Count > 0)
+                {
+                    string errorMsg = string.Join("\n\n", validationErrors);
+                    System.Windows.Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        CustomMessageBox.Show(
+                            errorMsg,
+                            ResourceHelper.GetString("Loc_Error"),
+                            MessageBoxType.Error);
+
+                        _isStartingOrStopping = true;
+                        IsRunning = false;
+                        _isStartingOrStopping = false;
+                    });
+                    return;
+                }
+
                 string eulaPath = Path.Combine(_serverProfile.FolderPath, "eula.txt");
                 bool needsEulaAgreement = false;
 
@@ -398,6 +417,9 @@ namespace Minecraft_Server_Manager.ViewModels
 
                         _serverProfile.ServerProcess.Start();
 
+                        // Point 2 : Écrire le fichier PID pour le rattachement en cas de crash MSM
+                        PidFileService.WritePidFile(_serverProfile, _serverProfile.ServerProcess.Id);
+
                         try { _serverProfile.ServerProcess.PriorityClass = ProcessPriorityClass.High; } catch { }
 
                         _serverProfile.IsRunning = true;
@@ -492,8 +514,27 @@ namespace Minecraft_Server_Manager.ViewModels
             {
                 if (System.Windows.Application.Current == null) return;
 
-                // Dispose du Process terminé
                 var exitedProcess = sender as Process;
+
+                // Lire le code de sortie AVANT tout Dispose — après Dispose, ExitCode n'est plus accessible
+                int exitCode = -1;
+                try
+                {
+                    if (exitedProcess != null && exitedProcess.HasExited)
+                    {
+                        exitCode = exitedProcess.ExitCode;
+                    }
+                }
+                catch (InvalidOperationException)
+                {
+                    exitCode = -999;
+                }
+                catch { }
+
+                // Capturer l'état intentionnel AVANT le Dispatcher.Invoke
+                // car le thread pool peut exécuter ce callback à tout moment
+                bool wasIntentionalStop = _isIntentionalStop;
+                bool wasRestarting = _isRestarting;
 
                 System.Windows.Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -508,6 +549,9 @@ namespace Minecraft_Server_Manager.ViewModels
                     _serverProfile.PlayerCount = 0;
                 });
 
+                // Point 2 : Supprimer le fichier PID à l'arrêt du serveur
+                PidFileService.DeletePidFile(_serverProfile);
+
                 // Dispose du processus monitoré s'il est différent du ServerProcess
                 if (_monitoredProcess != null && _monitoredProcess != exitedProcess)
                 {
@@ -515,7 +559,7 @@ namespace Minecraft_Server_Manager.ViewModels
                 }
                 _monitoredProcess = null;
 
-                // Dispose du Process après l'arrêt
+                // Dispose du Process après l'arrêt (et après avoir lu ExitCode)
                 if (exitedProcess != null)
                 {
                     exitedProcess.Exited -= OnServerProcessExited;
@@ -526,7 +570,7 @@ namespace Minecraft_Server_Manager.ViewModels
                     }
                 }
 
-                if (_isRestarting)
+                if (wasRestarting)
                 {
                     _ = DiscordService.SendNotification(_serverProfile.DiscordWebhookUrl,
                         ResourceHelper.GetString("Loc_RestartScheduledTitle"),
@@ -549,7 +593,7 @@ namespace Minecraft_Server_Manager.ViewModels
                     return;
                 }
 
-                if (_isIntentionalStop)
+                if (wasIntentionalStop)
                 {
                     _ = DiscordService.SendNotification(_serverProfile.DiscordWebhookUrl,
                            ResourceHelper.GetString("Loc_StopManualTitle"),
@@ -558,23 +602,11 @@ namespace Minecraft_Server_Manager.ViewModels
                     return;
                 }
 
-                int exitCode = -1;
-                try
-                {
-                    if (exitedProcess != null)
-                    {
-                        exitCode = exitedProcess.ExitCode;
-                    }
-                    _ = DiscordService.SendNotification(_serverProfile.DiscordWebhookUrl,
-                        ResourceHelper.GetString("Loc_CrashTitle"),
-                        string.Format(ResourceHelper.GetString("Loc_CrashMsg"), exitCode),
-                        DiscordService.ColorRed);
-                }
-                catch (InvalidOperationException)
-                {
-                    exitCode = -999;
-                }
-                catch { }
+                // Arrêt non planifié — utiliser le exitCode lu en amont
+                _ = DiscordService.SendNotification(_serverProfile.DiscordWebhookUrl,
+                    ResourceHelper.GetString("Loc_CrashTitle"),
+                    string.Format(ResourceHelper.GetString("Loc_CrashMsg"), exitCode),
+                    DiscordService.ColorRed);
 
                 if (System.Windows.Application.Current != null)
                 {

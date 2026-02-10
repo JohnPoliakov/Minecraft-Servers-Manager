@@ -1,4 +1,5 @@
-﻿using Minecraft_Server_Manager.Views;
+﻿using Minecraft_Server_Manager.Services;
+using Minecraft_Server_Manager.Views;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Windows;
@@ -66,6 +67,13 @@ namespace Minecraft_Server_Manager
             base.OnStartup(e);
             MainWindow mainWindow = new MainWindow();
             mainWindow.Show();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
+        {
+            // Nettoyer les toast notifications au shutdown
+            ToastNotificationService.Cleanup();
+            base.OnExit(e);
         }
 
         /// <summary>

@@ -1,4 +1,5 @@
 ﻿using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.Services;
 using Minecraft_Server_Manager.Utils;
 using Minecraft_Server_Manager.ViewModels;
 using System.ComponentModel;
@@ -104,10 +105,10 @@ namespace Minecraft_Server_Manager
                 e.Cancel = true;
                 this.Hide();
 
-                _notifyIcon.ShowBalloonTip(1000,
+                // Point 14 : Toast notification native au lieu de BalloonTip
+                ToastNotificationService.Show(
                     ResourceHelper.GetString("Loc_TrayBackgroundTitle"),
-                    ResourceHelper.GetString("Loc_TrayBackgroundMsg"),
-                    System.Windows.Forms.ToolTipIcon.Info);
+                    ResourceHelper.GetString("Loc_TrayBackgroundMsg"));
                 return;
             }
 
@@ -117,10 +118,10 @@ namespace Minecraft_Server_Manager
 
                 this.Hide();
 
-                _notifyIcon.ShowBalloonTip(2500,
+                // Point 14 : Toast notification native au lieu de BalloonTip
+                ToastNotificationService.Show(
                     ResourceHelper.GetString("Loc_TrayClosingTitle"),
-                    ResourceHelper.GetString("Loc_TrayClosingMsg"),
-                    System.Windows.Forms.ToolTipIcon.Info);
+                    ResourceHelper.GetString("Loc_TrayClosingMsg"));
 
                 if (this.DataContext is MainViewModel vm)
                 {

@@ -19,6 +19,12 @@ namespace Minecraft_Server_Manager.ViewModels
         private object _currentView;
         private bool _showSidebar = true;
         private bool _isLoading = false;
+
+        /// <summary>
+        /// Timer qui regroupe les sauvegardes (debounce) pour éviter d'écrire sur le disque à chaque PropertyChanged.
+        /// </summary>
+        private System.Windows.Threading.DispatcherTimer _saveDebounceTimer;
+        private readonly HashSet<string> _dirtyProfileIds = new HashSet<string>();
         #endregion
 
         #region Properties
@@ -73,6 +79,11 @@ namespace Minecraft_Server_Manager.ViewModels
 
             Servers = new ObservableCollection<ServerProfile>();
 
+            // Timer de debounce pour regrouper les sauvegardes (500ms après la dernière modification)
+            _saveDebounceTimer = new System.Windows.Threading.DispatcherTimer();
+            _saveDebounceTimer.Interval = TimeSpan.FromMilliseconds(500);
+            _saveDebounceTimer.Tick += SaveDebounceTimer_Tick;
+
             EditServerCommand = new RelayCommand(param => EditServer((ServerProfile)param));
             MonitorServerCommand = new RelayCommand(param => MonitorServer((ServerProfile)param));
             AddServerCommand = new RelayCommand(o => AddServer());
@@ -85,6 +96,95 @@ namespace Minecraft_Server_Manager.ViewModels
             LoadServers();
 
             ShowHome();
+        }
+        #endregion
+
+        #region Auto-Save (Point 1)
+        /// <summary>
+        /// Abonne le PropertyChanged d'un profil pour déclencher la sauvegarde auto.
+        /// </summary>
+        private void SubscribeProfileAutoSave(ServerProfile profile)
+        {
+            profile.PropertyChanged += OnProfilePropertyChanged;
+        }
+
+        /// <summary>
+        /// Désabonne le PropertyChanged d'un profil.
+        /// </summary>
+        private void UnsubscribeProfileAutoSave(ServerProfile profile)
+        {
+            profile.PropertyChanged -= OnProfilePropertyChanged;
+        }
+
+        /// <summary>
+        /// Appelé quand une propriété d'un profil change.
+        /// Marque le profil comme "dirty" et relance le timer de debounce.
+        /// </summary>
+        private void OnProfilePropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (_isLoading) return;
+            if (sender is not ServerProfile profile) return;
+
+            // Ignorer les propriétés runtime qui ne doivent pas déclencher de sauvegarde
+            if (e.PropertyName is nameof(ServerProfile.IsRunning)
+                              or nameof(ServerProfile.PlayerCount)
+                              or nameof(ServerProfile.ServerIcon)
+                              or nameof(ServerProfile.ServerProcess))
+                return;
+
+            lock (_dirtyProfileIds)
+            {
+                _dirtyProfileIds.Add(profile.Id);
+            }
+
+            // Restart le timer (debounce)
+            _saveDebounceTimer.Stop();
+            _saveDebounceTimer.Start();
+        }
+
+        /// <summary>
+        /// Quand le timer expire, sauvegarde tous les profils modifiés.
+        /// </summary>
+        private void SaveDebounceTimer_Tick(object sender, EventArgs e)
+        {
+            _saveDebounceTimer.Stop();
+
+            HashSet<string> idsToSave;
+            lock (_dirtyProfileIds)
+            {
+                idsToSave = new HashSet<string>(_dirtyProfileIds);
+                _dirtyProfileIds.Clear();
+            }
+
+            foreach (var id in idsToSave)
+            {
+                var profile = Servers.FirstOrDefault(s => s.Id == id);
+                if (profile != null)
+                {
+                    SaveProfileToDisk(profile);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Sauvegarde un profil sur le disque.
+        /// </summary>
+        private void SaveProfileToDisk(ServerProfile profile)
+        {
+            try
+            {
+                string appDataPath = ConfigFolderPath;
+                Directory.CreateDirectory(appDataPath);
+
+                string jsonFile = Path.Combine(appDataPath, $"{profile.Id}.json");
+                string jsonString = JsonSerializer.Serialize(profile, new JsonSerializerOptions { WriteIndented = true });
+
+                File.WriteAllText(jsonFile, jsonString);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"[AutoSave] Erreur sauvegarde profil {profile.DisplayName}: {ex.Message}");
+            }
         }
         #endregion
 
@@ -148,6 +248,23 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private void Servers_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
+            // Abonner/désabonner l'auto-save sur les profils ajoutés/retirés
+            if (e.NewItems != null)
+            {
+                foreach (ServerProfile profile in e.NewItems)
+                {
+                    SubscribeProfileAutoSave(profile);
+                }
+            }
+
+            if (e.OldItems != null)
+            {
+                foreach (ServerProfile profile in e.OldItems)
+                {
+                    UnsubscribeProfileAutoSave(profile);
+                }
+            }
+
             // Ne pas sauvegarder pendant le chargement initial
             if (_isLoading) return;
 
@@ -183,6 +300,9 @@ namespace Minecraft_Server_Manager.ViewModels
 
                         if (profile != null)
                         {
+                            // Point 2 : Tenter de rattacher un processus orphelin
+                            Services.PidFileService.TryReattachOrphanProcess(profile);
+
                             Servers.Add(profile);
                         }
                     }
@@ -191,6 +311,9 @@ namespace Minecraft_Server_Manager.ViewModels
 
                     }
                 }
+
+                // Nettoyer les fichiers PID obsolètes
+                Services.PidFileService.CleanupStalePidFiles();
             }
             finally
             {
