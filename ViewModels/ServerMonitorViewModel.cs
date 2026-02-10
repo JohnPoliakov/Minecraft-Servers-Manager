@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -55,6 +56,7 @@ namespace Minecraft_Server_Manager.ViewModels
         private TimeSpan _lastTotalProcessorTime;
         private DateTime _lastTimerTick;
         private double _maxRamMb = 1024;
+        private Process _monitoredProcess; // Le processus réellement monitoré (java.exe en mode Batch)
 
         // State Vars
         private bool _isRestarting = false;
@@ -243,6 +245,13 @@ namespace Minecraft_Server_Manager.ViewModels
 
             _serverProfile.LogReceived -= OnNewLogReceived;
 
+            // Dispose du processus monitoré s'il est différent du ServerProcess
+            if (_monitoredProcess != null && _monitoredProcess != _serverProfile.ServerProcess)
+            {
+                _monitoredProcess.Dispose();
+                _monitoredProcess = null;
+            }
+
             _commandLock.Dispose();
         }
         #endregion
@@ -314,6 +323,7 @@ namespace Minecraft_Server_Manager.ViewModels
                 }
 
                 _isIntentionalStop = false;
+                _monitoredProcess = null; // Reset du processus monitoré pour le prochain cycle
                 SetBusyState(true);
                 _serverProfile.AddLog(ResourceHelper.GetString("Loc_LogStart") + "\n");
 
@@ -498,6 +508,13 @@ namespace Minecraft_Server_Manager.ViewModels
                     _serverProfile.PlayerCount = 0;
                 });
 
+                // Dispose du processus monitoré s'il est différent du ServerProcess
+                if (_monitoredProcess != null && _monitoredProcess != exitedProcess)
+                {
+                    _monitoredProcess.Dispose();
+                }
+                _monitoredProcess = null;
+
                 // Dispose du Process après l'arrêt
                 if (exitedProcess != null)
                 {
@@ -614,6 +631,7 @@ namespace Minecraft_Server_Manager.ViewModels
             if (_serverProfile.ServerProcess == null || _serverProfile.ServerProcess.HasExited)
             {
                 _monitorTimer.Stop();
+                _monitoredProcess = null;
                 CpuUsageText = "0 %";
                 RamUsageText = "0 MB";
                 return;
@@ -630,13 +648,28 @@ namespace Minecraft_Server_Manager.ViewModels
             {
                 try
                 {
-                    _serverProfile.ServerProcess.Refresh();
+                    // En mode Batch, le processus suivi est cmd.exe.
+                    // On cherche le processus enfant java.exe pour avoir les vraies métriques.
+                    if (_monitoredProcess == null || _monitoredProcess.HasExited)
+                    {
+                        var oldMonitored = _monitoredProcess;
+                        _monitoredProcess = FindJavaChildProcess(_serverProfile.ServerProcess) ?? _serverProfile.ServerProcess;
+                        // Dispose de l'ancien processus monitoré s'il est différent
+                        if (oldMonitored != null && oldMonitored != _serverProfile.ServerProcess && oldMonitored != _monitoredProcess)
+                        {
+                            oldMonitored.Dispose();
+                        }
+                        // Reset les compteurs CPU quand on change de processus monitoré
+                        _lastTimerTick = DateTime.MinValue;
+                    }
+
+                    _monitoredProcess.Refresh();
 
                     uptimeStr = (DateTime.Now - _serverProfile.ServerProcess.StartTime).ToString(@"hh\:mm\:ss");
 
-                    // --- CPU Calcul ---
+                    // --- CPU Calcul (sur le processus Java réel) ---
                     var currentTime = DateTime.Now;
-                    var currentTotalProcessorTime = _serverProfile.ServerProcess.TotalProcessorTime;
+                    var currentTotalProcessorTime = _monitoredProcess.TotalProcessorTime;
 
                     if (_lastTimerTick != DateTime.MinValue)
                     {
@@ -649,8 +682,8 @@ namespace Minecraft_Server_Manager.ViewModels
                     _lastTotalProcessorTime = currentTotalProcessorTime;
                     _lastTimerTick = currentTime;
 
-                    // --- RAM Calcul ---
-                    ramUsedMb = _serverProfile.ServerProcess.WorkingSet64 / 1024.0 / 1024.0;
+                    // --- RAM Calcul (sur le processus Java réel) ---
+                    ramUsedMb = _monitoredProcess.WorkingSet64 / 1024.0 / 1024.0;
                 }
                 catch { }
             });
@@ -685,6 +718,82 @@ namespace Minecraft_Server_Manager.ViewModels
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Recherche le processus enfant java/javaw lancé par cmd.exe en mode Batch.
+        /// Utilise NtQueryInformationProcess pour trouver la relation parent-enfant.
+        /// </summary>
+        private static Process FindJavaChildProcess(Process parentProcess)
+        {
+            try
+            {
+                int parentId = parentProcess.Id;
+
+                foreach (var proc in Process.GetProcesses())
+                {
+                    try
+                    {
+                        string name = proc.ProcessName.ToLowerInvariant();
+                        if (name is "java" or "javaw")
+                        {
+                            if (GetParentProcessId(proc.Id) == parentId)
+                            {
+                                return proc;
+                            }
+                        }
+
+                        proc.Dispose();
+                    }
+                    catch
+                    {
+                        proc.Dispose();
+                    }
+                }
+            }
+            catch { }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Obtient le PID du processus parent via NtQueryInformationProcess.
+        /// </summary>
+        private static int GetParentProcessId(int processId)
+        {
+            try
+            {
+                using var process = Process.GetProcessById(processId);
+                var handle = process.Handle;
+
+                var pbi = new PROCESS_BASIC_INFORMATION();
+                int status = NtQueryInformationProcess(handle, 0, ref pbi, Marshal.SizeOf(pbi), out _);
+
+                if (status == 0)
+                {
+                    return pbi.InheritedFromUniqueProcessId.ToInt32();
+                }
+            }
+            catch { }
+
+            return -1;
+        }
+
+        [DllImport("ntdll.dll")]
+        private static extern int NtQueryInformationProcess(
+            IntPtr processHandle, int processInformationClass,
+            ref PROCESS_BASIC_INFORMATION processInformation,
+            int processInformationLength, out int returnLength);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct PROCESS_BASIC_INFORMATION
+        {
+            public IntPtr ExitStatus;
+            public IntPtr PebBaseAddress;
+            public IntPtr AffinityMask;
+            public IntPtr BasePriority;
+            public IntPtr UniqueProcessId;
+            public IntPtr InheritedFromUniqueProcessId;
         }
 
         private void ParseMaxRam()
