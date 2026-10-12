@@ -1,0 +1,20 @@
+name: Windows build and regression tests
+on:
+  push:
+  pull_request:
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: dotnet restore "Minecraft Server Manager.csproj" --locked-mode
+      - run: dotnet build "Minecraft Server Manager.csproj" -c Release --no-restore -warnaserror
+      - run: dotnet run --project Tests/Msm.RegressionTests.csproj -c Release
+      - run: dotnet publish "Minecraft Server Manager.csproj" -c Release --no-restore --self-contained false -o artifacts/msm
+      - uses: actions/upload-artifact@v4
+        with:
+          name: msm-windows
+          path: artifacts/msm

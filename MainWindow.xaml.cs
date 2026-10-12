@@ -1,4 +1,5 @@
-﻿using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.Services;
 using Minecraft_Server_Manager.Utils;
 using Minecraft_Server_Manager.ViewModels;
 using System.ComponentModel;
@@ -12,20 +13,22 @@ namespace Minecraft_Server_Manager
         private System.Windows.Forms.ToolStripMenuItem _exitMenuItem;
         private bool _isReallyExiting = false;
         private bool _isCleanedUp = false;
+        private bool _isClosing;
         public MainWindow()
         {
             InitializeComponent();
+            string version = typeof(MainWindow).Assembly.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+                .OfType<System.Reflection.AssemblyInformationalVersionAttribute>().First().InformationalVersion.Split('+')[0];
+            Title = "Minecraft Servers Manager — " + version;
 
             ConfigManager.Load();
-            var lang = ConfigManager.Settings.Language;
-            var dict = new ResourceDictionary();
-            dict.Source = new Uri($"pack://application:,,,/Resources/Lang/{lang}.xaml", UriKind.Absolute);
-            System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
+            ThemeResources.ApplyLanguage(ConfigManager.Settings.Language);
 
             InitializeSystemTray();
             this.DataContext = new MainViewModel();
         }
 
+        [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(_notifyIcon), nameof(_exitMenuItem))]
         private void InitializeSystemTray()
         {
 
@@ -114,6 +117,8 @@ namespace Minecraft_Server_Manager
             if (!_isCleanedUp)
             {
                 e.Cancel = true;
+                if (_isClosing) return;
+                _isClosing = true;
 
                 this.Hide();
 
@@ -124,7 +129,14 @@ namespace Minecraft_Server_Manager
 
                 if (this.DataContext is MainViewModel vm)
                 {
-                    await vm.StopAllServersAsync();
+                    try { await vm.StopAllServersAsync(); }
+                    catch (Exception ex)
+                    {
+                        _isClosing = false;
+                        ShowWindow();
+                        System.Windows.MessageBox.Show(ex.Message, "Arrêt des serveurs");
+                        return;
+                    }
                 }
 
                 _isCleanedUp = true;

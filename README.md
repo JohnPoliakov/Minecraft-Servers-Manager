@@ -24,7 +24,7 @@ Whether you want to run a vanilla server for friends or a heavy modpack from Cur
 * **Auto-Installer:** Automatically detects Modpack downloads (`.zip`), extracts them, and sets up the server folder structure for you.
 
 ### 📊 Real-Time Monitoring
-* **Live Metrics:** Visualize **CPU and RAM usage** in real-time with beautiful charts (LiveCharts).
+* **Live Metrics:** CPU and resident RAM for the server and its child processes, including batch launchers. CPU is a percentage of the entire machine; memory is shown in MiB, separately from the Java heap limit. A dash means a measurement is unavailable or warming up.
 * **Console Output:** Full access to the server console log with color-coded output.
 * **Command Input:** Send commands to the server with command history navigation (Up/Down arrows).
 * **Player List:** See who is online in real-time.
@@ -32,14 +32,14 @@ Whether you want to run a vanilla server for friends or a heavy modpack from Cur
 ### ⚙️ Advanced Configuration
 * **GUI Editor:** Edit `server.properties`, Whitelist, and Ops without touching text files.
 * **Java Management:** Automatically detects installed Java versions and allows specific Java paths per server.
-* **Optimization:** One-click button to apply **Aikar's Flags** for optimal performance.
+* **Optimization:** Apply a G1 preset while preserving the memory budget and diagnostic options. Measure performance with your own Java version and pack.
 * **Scripting:** Allow you to run your own .bat script to start the server.
-* **Backups:** Built-in backup manager (Create/Delete/Auto-cleanup old backups).
+* **Backups:** Create ZIP backups with retention after a successful backup. A running server is stopped cleanly, backed up, then restarted; the UI asks before this interruption. An unreadable file fails the backup. Restore by extracting a verified archive into a separate folder while the server is stopped; there is no automatic restore UI.
 * **Auto-Restart:** Schedule automatic restarts at specific times.
 * **Discord Webhooks:** Get notifications on Discord when the server starts, stops, or crashes.
 
 ### 🌍 Internationalization & Theming
-* **Multi-language Support:** Fully translated into **English, French, Spanish, and German**.
+* **Multi-language Support:** Interface resources in **English, French, Spanish, and German**. Some diagnostic messages remain in French.
 * **Theming:** Choose from multiple color themes (Dark Blue, Midnight Black, Forest Green, etc.).
 * **EULA Compliance:** User-friendly prompt to accept Mojang's EULA safely.
 
@@ -49,7 +49,7 @@ Whether you want to run a vanilla server for friends or a heavy modpack from Cur
 
 ### Prerequisites
 * **OS:** Windows 10 or 11.
-* **.NET Runtime:** .NET 6.0 or higher.
+* **.NET Runtime:** Included in the official Windows x64 distribution. Only framework-dependent builds require a separate .NET 10 Desktop Runtime, x64.
 * **WebView2 Runtime:** (Usually pre-installed on modern Windows).
 
 ---
@@ -60,12 +60,31 @@ If you want to contribute or modify the code:
 
 1.  Clone the repository:
     ```bash
-    git clone [https://github.com/YourUsername/Minecraft-Server-Manager.git](https://github.com/YourUsername/Minecraft-Server-Manager.git)
+    git clone https://github.com/JohnPoliakov/Minecraft-Servers-Manager.git
     ```
-2.  Open the solution in **Visual Studio 2022**.
+2.  Install the **.NET 10 SDK** (see `global.json`) and open the solution in a compatible Visual Studio version, or use the CLI below.
 3.  Ensure you have the **.NET Desktop Development** workload installed.
 4.  Restore NuGet packages.
 5.  Build the solution (`Ctrl+Shift+B`).
+
+```powershell
+dotnet restore "Minecraft Server Manager.csproj" --locked-mode
+dotnet build "Minecraft Server Manager.csproj" -c Release --no-restore -warnaserror
+dotnet run --project Tests/Msm.RegressionTests.csproj -c Release
+dotnet publish "Minecraft Server Manager.csproj" -c Release --no-restore --self-contained false -o artifacts/msm
+```
+
+The stable release is `1.1.0`, displayed in the window title. To build its self-contained Windows x64 executable, use:
+
+```powershell
+dotnet publish "Minecraft Server Manager.csproj" -p:PublishProfile=Official-win-x64
+```
+
+The output is written to `artifacts/MSM-1.1.0-win-x64/`. WebView2 and Java remain separate prerequisites for their respective features. Keep all files included in a distributed archive together. Existing profile JSON files remain in Documents/Minecraft Servers Manager; runtime state is no longer persisted. Atomic writes retain a `.bak` file.
+
+The regression runner uses isolated temporary folders and synthetic child processes, without contacting Minecraft, Mojang, CurseForge or Discord. It tests Java-style and batch launches, CPU/RAM, detached children, navigation, commands, shutdown/retry, backups, archive validation and WPF rendering. The Windows workflow runs the same checks.
+
+`ServerRegistry` owns one `ServerSession` per server. Screens only subscribe to these sessions. `ProcessGroup` owns the Windows job and its metrics; `ServerBackup`, `ServerInstaller` and `ServerCatalog` own filesystem operations. See [implementation notes](docs/REFACTOR-IMPLEMENTATION.md) for behavior changes and verification limits.
 
 ---
 

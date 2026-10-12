@@ -1,4 +1,4 @@
-﻿using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.Models;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 
@@ -28,7 +28,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
             // Initialisation des commandes
             // On exécute l'action 'onServerSelected' passée par le MainViewModel
-            SelectServerCommand = new RelayCommand(param => onServerSelected?.Invoke((ServerProfile)param));
+            SelectServerCommand = new RelayCommand(param => { if (param is ServerProfile profile) onServerSelected(profile); });
         }
         #endregion
     }

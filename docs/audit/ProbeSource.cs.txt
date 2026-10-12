@@ -1,0 +1,116 @@
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Reflection;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Threading;
+using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.ViewModels;
+using Minecraft_Server_Manager.UserControls;
+using Minecraft_Server_Manager.Converters;
+
+internal static class Program
+{
+    static T Field<T>(object instance, string name) => (T)instance.GetType().GetField(name, BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(instance)!;
+    static void Call(object instance, string name, params object?[] args) => instance.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(instance, args);
+    static void Pump()
+    {
+        var frame = new DispatcherFrame();
+        Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => frame.Continue = false));
+        Dispatcher.PushFrame(frame);
+    }
+    static void Print(string id, object value) => Console.WriteLine($"{id}: {value}");
+
+    [STAThread]
+    static void Main()
+    {
+        // No App startup, MainWindow, real server, network request or user profile storage.
+        var app = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        app.Resources["MC-Font"] = new FontFamily("Consolas");
+        app.Resources["IntToVisibilityConverter"] = new IntToVisibilityConverter();
+        app.Resources["BoolToVis"] = new Minecraft_Server_Manager.Converters.BooleanToVisibilityConverter();
+        app.Resources["PrimaryBrush"] = Brushes.Black;
+        app.Resources["SecondaryBrush"] = Brushes.Gray;
+
+        var profile = new ServerProfile { DisplayName = "Audit", FolderPath = ".", JvmArguments = "-Xmx1G", IsRunning = true };
+        var restored = JsonSerializer.Deserialize<ServerProfile>(JsonSerializer.Serialize(profile))!;
+        Print("PERSIST_RUNTIME", $"restored IsRunning={restored.IsRunning}; Process is null={restored.ServerProcess is null}");
+
+        using var ownProcessHandle = Process.GetCurrentProcess();
+        profile.ServerProcess = ownProcessHandle;
+        var first = new ServerMonitorViewModel(profile);
+        profile.AddLog("[12:00:00] [Server thread/INFO]: Alice[/127.0.0.1:1234] logged in with entity id 1 at (0, 0, 0)");
+        Pump();
+        Print("PLAYERS_BEFORE_NAV", first.PlayerCount);
+        Print("TIMER_BEFORE_NAV", Field<DispatcherTimer>(first, "_monitorTimer").IsEnabled);
+        first.Cleanup();
+        Print("TIMER_AFTER_NAV", Field<DispatcherTimer>(first, "_monitorTimer").IsEnabled);
+        profile.AddLog("[12:00:01] [Server thread/INFO]: Bob[/127.0.0.1:1234] logged in with entity id 2 at (0, 0, 0)");
+        var second = new ServerMonitorViewModel(profile);
+        Print("PLAYERS_AFTER_NAV", $"monitor={second.PlayerCount}; profile={profile.PlayerCount}; cached Bob={profile.CachedLogs.ToString().Contains("Bob")}");
+        second.Cleanup();
+
+        profile.IsBusy = true;
+        var busy = new ServerMonitorViewModel(profile);
+        profile.IsBusy = false;
+        Print("BUSY_AFTER_COMPLETION", $"profile={profile.IsBusy}; switch enabled={busy.IsSwitchEnabled}");
+        var gate = Field<SemaphoreSlim>(busy, "_commandLock");
+        gate.Wait();
+        busy.Cleanup();
+        try { gate.Release(); Print("CLEANUP_INFLIGHT_COMMAND", "no exception"); }
+        catch (Exception ex) { Print("CLEANUP_INFLIGHT_COMMAND", ex.GetType().Name); }
+
+        var control = new ServerMonitor();
+        var queue = Field<ConcurrentQueue<string>>(control, "_logQueue");
+        for (int i = 1; i <= 51; i++) queue.Enqueue($"line {i}");
+        Call(control, "ProcessLogQueue", null, EventArgs.Empty);
+        var console = (RichTextBox)control.FindName("ConsoleOutput");
+        Print("CONSOLE_BATCH", $"input=51; rendered={console.Document.Blocks.Count}; queued={queue.Count}");
+        Field<DispatcherTimer>(control, "_logUpdateTimer").Stop();
+
+        Print("STATUS_BINDING", $"ServerStatusText exists={typeof(ServerMonitorViewModel).GetProperty("ServerStatusText") != null}");
+
+        // Exact expressions from production, on synthetic inputs.
+        var bat = "\"C:\\Program Files\\Java\\jdk-21\\bin\\java.exe\" -jar server.jar";
+        Print("BATCH_REWRITE", Regex.Replace(bat, @"\bjava\b", "\"C:\\JDK\\bin\\java.exe\"", RegexOptions.IgnoreCase));
+        Print("BACKUP_PATH_FILTER", @"C:\Backups\Minecraft\world\level.dat".Contains("Backups"));
+        var folder = @"C:\Servers\Pack";
+        var jar = @"C:\Servers\Pack2\server.jar";
+        Print("SIBLING_JAR_PATH", jar.StartsWith(folder, StringComparison.OrdinalIgnoreCase) ? jar.Substring(folder.Length).TrimStart('\\', '/') : jar);
+
+        var psi = new ProcessStartInfo("cmd.exe", "/d /c exit 7") { UseShellExecute = false, CreateNoWindow = true };
+        var exited = Process.Start(psi)!;
+        exited.WaitForExit();
+        Print("EXIT_BEFORE_DISPOSE", exited.ExitCode);
+        exited.Dispose();
+        try { Print("EXIT_AFTER_DISPOSE", exited.ExitCode); }
+        catch (Exception ex) { Print("EXIT_AFTER_DISPOSE", ex.GetType().Name); }
+
+        var fixture = Path.Combine(Path.GetTempPath(), "msm-audit-20260910", "fixture-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(fixture);
+        File.WriteAllText(Path.Combine(fixture, "level.dat"), "synthetic world data");
+        var backupProfile = new ServerProfile { DisplayName = "Audit backup", FolderPath = fixture, JvmArguments = "-Xmx1G" };
+        var backupVm = new ServerMonitorViewModel(backupProfile);
+        using (var locked = File.Open(Path.Combine(fixture, "level.dat"), FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+        {
+            Call(backupVm, "PerformBackup");
+            var frame = new DispatcherFrame();
+            var timeout = Stopwatch.StartNew();
+            var poll = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(20) };
+            poll.Tick += (_, _) => { if (!backupProfile.IsBusy || timeout.Elapsed > TimeSpan.FromSeconds(5)) frame.Continue = false; };
+            poll.Start();
+            Dispatcher.PushFrame(frame);
+            poll.Stop();
+            var archives = Directory.GetFiles(Path.Combine(fixture, "Backups"), "*.zip");
+            using var archive = ZipFile.OpenRead(archives.Single());
+            Print("BACKUP_LOCKED_FILE", $"entries={archive.Entries.Count}; success logged={backupProfile.CachedLogs.ToString().Contains("Loc_BackupSuccess")}; busy={backupProfile.IsBusy}");
+        }
+        backupVm.Cleanup();
+        app.Shutdown();
+    }
+}

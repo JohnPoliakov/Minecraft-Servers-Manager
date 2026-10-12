@@ -1,5 +1,6 @@
-﻿using Microsoft.VisualBasic.Devices;
+using Microsoft.VisualBasic.Devices;
 using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.Services;
 using Minecraft_Server_Manager.Utils;
 using Minecraft_Server_Manager.Views;
 using System.Collections.ObjectModel;
@@ -14,20 +15,20 @@ namespace Minecraft_Server_Manager.ViewModels
 {
     public class LanguageOption
     {
-        public string Name { get; set; }
-        public string Code { get; set; }
+        public string Name { get; set; } = "";
+        public string Code { get; set; } = "";
 
-        public string FlagPath { get; set; }
+        public string FlagPath { get; set; } = "";
 
     }
 
     public class ThemeOption
     {
-        public string Name { get; set; }
-        public string PrimaryColor { get; set; }
-        public string SecondaryColor { get; set; }
+        public string Name { get; set; } = "";
+        public string PrimaryColor { get; set; } = "";
+        public string SecondaryColor { get; set; } = "";
 
-        public System.Windows.Media.Brush PreviewBrush => (System.Windows.Media.Brush)new BrushConverter().ConvertFromString(PrimaryColor);
+        public System.Windows.Media.Brush PreviewBrush => (System.Windows.Media.Brush?)new BrushConverter().ConvertFromString(PrimaryColor) ?? System.Windows.Media.Brushes.Transparent;
     }
 
     public class SettingsViewModel : INotifyPropertyChanged
@@ -117,14 +118,8 @@ namespace Minecraft_Server_Manager.ViewModels
 
         public SettingsViewModel()
         {
-            AvailableThemes = new ObservableCollection<ThemeOption>
-            {
-                new ThemeOption { Name = "Dark Blue", PrimaryColor = "#2c3e50", SecondaryColor = "#34495e" },
-                new ThemeOption { Name = "Midnight Black",   PrimaryColor = "#000000", SecondaryColor = "#1a1a1a" },
-                new ThemeOption { Name = "Forest Green",     PrimaryColor = "#1e392a", SecondaryColor = "#27ae60" },
-                new ThemeOption { Name = "Deep Purple",      PrimaryColor = "#4a235a", SecondaryColor = "#8e44ad" },
-                new ThemeOption { Name = "Ocean Blue",       PrimaryColor = "#154360", SecondaryColor = "#2980b9" }
-            };
+            AvailableThemes = new ObservableCollection<ThemeOption>(ThemeResources.Themes.Select(theme =>
+                new ThemeOption { Name = theme.Key, PrimaryColor = theme.Value.Primary, SecondaryColor = theme.Value.Secondary }));
 
             try
             {
@@ -138,8 +133,7 @@ namespace Minecraft_Server_Manager.ViewModels
                 MaxSystemRam = 16;
             }
 
-            ConfigManager.Load();
-            DefaultPath = ConfigManager.Settings.DefaultServerPath;
+            _defaultPath = ConfigManager.Settings.DefaultServerPath;
 
             var savedTheme = AvailableThemes.FirstOrDefault(t => t.Name == ConfigManager.Settings.SelectedTheme)
                              ?? AvailableThemes.First();
@@ -165,21 +159,15 @@ namespace Minecraft_Server_Manager.ViewModels
                 new LanguageOption { Name = "Deutsch", Code = "de-DE", FlagPath = "/Resources/Flags/flag-de.png" }
             };
 
-            SelectedLanguage = AvailableLanguages.FirstOrDefault(l => l.Code == ConfigManager.Settings.Language)
+            _selectedLanguage = AvailableLanguages.FirstOrDefault(l => l.Code == ConfigManager.Settings.Language)
                                ?? AvailableLanguages.First();
         }
 
-        private void ApplyLanguage(string cultureCode)
-        {
-            var dict = new ResourceDictionary();
-            dict.Source = new Uri($"pack://application:,,,/Resources/Lang/{cultureCode}.xaml", UriKind.Absolute);
-
-            System.Windows.Application.Current.Resources.MergedDictionaries.Add(dict);
-        }
+        private void ApplyLanguage(string cultureCode) => ThemeResources.ApplyLanguage(cultureCode);
 
         private void ClearBrowserCache()
         {
-            string cachePath = Path.Combine(ConfigManager.Settings.DefaultServerPath, "BrowserData");
+            string cachePath = AppPaths.BrowserData;
 
             if (!Directory.Exists(cachePath))
             {
@@ -207,16 +195,7 @@ namespace Minecraft_Server_Manager.ViewModels
             }
         }
 
-        public void ApplyTheme(ThemeOption theme)
-        {
-            if (theme == null) return;
-
-            var primaryColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.PrimaryColor);
-            var secondaryColor = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(theme.SecondaryColor);
-
-            System.Windows.Application.Current.Resources["PrimaryBrush"] = new SolidColorBrush(primaryColor);
-            System.Windows.Application.Current.Resources["SecondaryBrush"] = new SolidColorBrush(secondaryColor);
-        }
+        public void ApplyTheme(ThemeOption theme) => ThemeResources.Apply(theme.Name);
 
         private void SelectFolder()
         {
@@ -232,8 +211,8 @@ namespace Minecraft_Server_Manager.ViewModels
             }
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null) =>
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 }

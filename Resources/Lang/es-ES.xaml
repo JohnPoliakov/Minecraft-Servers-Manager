@@ -1,4 +1,4 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:sys="clr-namespace:System;assembly=mscorlib">
 
@@ -35,7 +35,7 @@
     <sys:String x:Key="Loc_JavaVersion">VERSIÓN DE JAVA</sys:String>
     <sys:String x:Key="Loc_LaunchFile">ARCHIVO DE INICIO (.JAR)</sys:String>
     <sys:String x:Key="Loc_JvmArgs">ARGUMENTOS JVM (RAM)</sys:String>
-    <sys:String x:Key="Loc_ApplyAikar">🗲 Aplicar Flags de Aikar</sys:String>
+    <sys:String x:Key="Loc_ApplyAikar">🗲 Aplicar configuración G1</sys:String>
     <sys:String x:Key="Loc_DiscordWebhook">WEBHOOK DE DISCORD (NOTIFICACIONES)</sys:String>
     <sys:String x:Key="Loc_AutoRestart">Reinicio Automático</sys:String>
     <sys:String x:Key="Loc_At">a las</sys:String>
@@ -89,7 +89,7 @@
     <sys:String x:Key="Loc_ErrorImageLoad">Error al cargar la imagen: {0}</sys:String>
 
     <sys:String x:Key="Loc_AikarTitle">Optimización Aplicada</sys:String>
-    <sys:String x:Key="Loc_AikarMsg">¡Se han aplicado los flags de optimización Aikar (8GB)!\n\nNota: Si su PC tiene menos de 16GB de RAM, reduzca los valores -Xms y -Xmx manualmente.</sys:String>
+    <sys:String x:Key="Loc_AikarMsg">Se ha aplicado una configuración G1. Se conservan la memoria y las opciones de diagnóstico. Comprueba el rendimiento con tu versión de Java y tu paquete.</sys:String>
 
     <sys:String x:Key="Loc_MissingUrlTitle">URL Faltante</sys:String>
     <sys:String x:Key="Loc_MissingUrlMsg">Por favor, introduzca primero una URL de Webhook válida.</sys:String>
@@ -170,4 +170,19 @@
     <sys:String x:Key="Loc_SelectBatTitle">Seleccionar script de inicio (.bat)</sys:String>
     <sys:String x:Key="Loc_BatchFile">ARCHIVO SCRIPT (.BAT)</sys:String>
     <sys:String x:Key="Loc_ClearLogsOnStart">Limpiar logs al iniciar</sys:String>
+    <sys:String x:Key="Loc_StateStopped">Detenido</sys:String>
+    <sys:String x:Key="Loc_StateStarting">Iniciando…</sys:String>
+    <sys:String x:Key="Loc_StateRunning">En línea</sys:String>
+    <sys:String x:Key="Loc_StateStopping">Deteniendo…</sys:String>
+    <sys:String x:Key="Loc_StateRestartPending">Reinicio pendiente</sys:String>
+    <sys:String x:Key="Loc_StateFaulted">Error</sys:String>
+    <sys:String x:Key="Loc_HeapLimit">Límite del heap Java</sys:String>
+    <sys:String x:Key="Loc_BackupPause">Esta copia detendrá temporalmente el servidor y lo iniciará después. ¿Continuar?</sys:String>
+    <sys:String x:Key="Loc_ResidentMemory">Memoria residente</sys:String>
+    <sys:String x:Key="Loc_TotalCpu">CPU total</sys:String>
+    <sys:String x:Key="Loc_MetricsScope">Uso conjunto del servidor y sus procesos hijos. La memoria residente difiere del heap Java.</sys:String>
+    <sys:String x:Key="Loc_DeleteStopsServer">El servidor se detendrá antes de eliminar el perfil.</sys:String>
+    <sys:String x:Key="Loc_PermissionSent">Comando enviado al servidor. Comprueba el resultado en la consola.</sys:String>
+    <sys:String x:Key="Loc_InstallingPack">Instalando y validando el paquete…</sys:String>
+    <sys:String x:Key="Loc_BackupTitle">Copia de seguridad</sys:String>
 </ResourceDictionary>

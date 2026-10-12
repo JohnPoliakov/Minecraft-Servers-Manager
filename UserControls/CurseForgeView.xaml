@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="Minecraft_Server_Manager.UserControls.CurseForgeView"
+<UserControl x:Class="Minecraft_Server_Manager.UserControls.CurseForgeView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -13,7 +13,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <Border Grid.Row="0" Background="#f1c40f" Padding="10" Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVis}, FallbackValue=Collapsed}">
+        <Border Grid.Row="0" Background="#f1c40f" Padding="10" Visibility="Collapsed">
             <TextBlock Text="{DynamicResource Loc_ModpackDownloading}" Foreground="Black" FontWeight="Bold" HorizontalAlignment="Center"/>
         </Border>
 
@@ -21,7 +21,7 @@
             <TextBlock Text="{DynamicResource Loc_BrowserLoading}" FontWeight="Bold" HorizontalAlignment="Center" Foreground="White" FontSize="35" VerticalAlignment="Center"/>
         </Border>
 
-        <wv2:WebView2 x:Name="webView" Grid.Row="1" Source="" Visibility="Visible"/>
+        <wv2:WebView2 x:Name="webView" Grid.Row="1" Visibility="Visible"/>
 
         <Border Grid.Row="1" Background="{DynamicResource PrimaryBrush}" Visibility="Hidden" Name="ServerInstallBlock">
             <StackPanel VerticalAlignment="Center">
@@ -77,6 +77,7 @@
                 </Grid>
 
                 <TextBlock x:Name="ProgressText" Text="0%" Foreground="#95a5a6" HorizontalAlignment="Center"/>
+                <Button Content="{DynamicResource Loc_MsgBox_Cancel}" Click="CancelInstall" HorizontalAlignment="Center" Padding="20,8" Margin="0,15,0,0"/>
             </StackPanel>
         </Border>
     </Grid>

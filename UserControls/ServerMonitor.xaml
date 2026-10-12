@@ -1,10 +1,10 @@
-﻿<UserControl x:Class="Minecraft_Server_Manager.UserControls.ServerMonitor"
+<UserControl x:Class="Minecraft_Server_Manager.UserControls.ServerMonitor"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             mc:Ignorable="d" 
-             xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf" 
+             mc:Ignorable="d"
+
              d:DesignHeight="600" d:DesignWidth="1000">
 
     <Grid Background="{DynamicResource PrimaryBrush}">
@@ -64,7 +64,7 @@
                                 </ControlTemplate>
                             </Button.Template>
                             <Border Background="{DynamicResource PrimaryBrush}" Padding="8">
-                                <Image Source="/Resources/save.png" Stretch="Uniform"/>
+                                <Image Source="/Minecraft Servers Manager;component/Resources/save.png" Stretch="Uniform"/>
                             </Border>
                         </Button>
 
@@ -98,11 +98,11 @@
                                 </ControlTemplate>
                             </Button.Template>
                             <Border Background="{DynamicResource PrimaryBrush}" Padding="8">
-                                <Image Source="/Resources/gear-settings.png" Stretch="Uniform"/>
+                                <Image Source="/Minecraft Servers Manager;component/Resources/gear-settings.png" Stretch="Uniform"/>
                             </Border>
                         </Button>
 
-                        <ToggleButton IsChecked="{Binding IsRunning}" IsEnabled="{Binding IsSwitchEnabled}" Command="{Binding ToggleServerCommand}" Cursor="Hand" Width="50" Height="26">
+                        <ToggleButton IsChecked="{Binding IsRunning, Mode=OneWay}" IsEnabled="{Binding IsSwitchEnabled}" Command="{Binding ToggleServerCommand}" Cursor="Hand" Width="50" Height="26">
                             <ToggleButton.Template>
                                 <ControlTemplate TargetType="ToggleButton">
                                     <Grid>
@@ -163,11 +163,9 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Column="0" Text=">" Foreground="#27ae60" FontWeight="Bold" FontSize="16" VerticalAlignment="Center" Margin="5,0,5,0"/>
-                        <TextBox Grid.Column="1" Text="{Binding CommandInput, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" FontFamily="Consolas" FontSize="14" VerticalAlignment="Center" Padding="5" TextChanged="CommandInput_TextChanged">
+                        <TextBox Grid.Column="1" Text="{Binding CommandInput, UpdateSourceTrigger=PropertyChanged}" Background="Transparent" Foreground="White" CaretBrush="White" BorderThickness="0" FontFamily="Consolas" FontSize="14" VerticalAlignment="Center" Padding="5" PreviewKeyDown="CommandInput_PreviewKeyDown">
                             <TextBox.InputBindings>
                                 <KeyBinding Key="Return" Command="{Binding SendCommand}"/>
-                                <KeyBinding Key="Up" Command="{Binding NavigateHistoryCommand}" CommandParameter="Up"/>
-                                <KeyBinding Key="Down" Command="{Binding NavigateHistoryCommand}" CommandParameter="Down"/>
                             </TextBox.InputBindings>
                         </TextBox>
                         <Button Grid.Column="2" Content="{DynamicResource Loc_Send}" Command="{Binding SendCommand}" Background="#2980b9" Foreground="White" BorderThickness="0" Cursor="Hand" Margin="0,0,0,0" Width="75">
@@ -233,14 +231,11 @@
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Text="{DynamicResource Loc_Cpu}" Foreground="#95a5a6" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
                             <Grid Grid.Row="1" Height="150">
-                                <lvc:PieChart Series="{Binding CpuSeries}" InnerRadius="55" LegendLocation="None" Hoverable="False" DataTooltip="{x:Null}">
-                                    <lvc:PieChart.ChartLegend>
-                                        <lvc:DefaultLegend Visibility="Collapsed"/>
-                                    </lvc:PieChart.ChartLegend>
-                                </lvc:PieChart>
+                                <ProgressBar Value="{Binding CpuPercent, Mode=OneWay}" Maximum="100" Height="8" VerticalAlignment="Bottom"
+                                             Foreground="#3498db" Background="#405060" ToolTip="{DynamicResource Loc_MetricsScope}"/>
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding CpuUsageText}" Foreground="White" FontSize="20" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{DynamicResource Loc_Usage}" Foreground="#7f8c8d" FontSize="10" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{DynamicResource Loc_TotalCpu}" Foreground="#7f8c8d" FontSize="10" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
                         </Grid>
@@ -255,10 +250,12 @@
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" Text="{DynamicResource Loc_RamTitle}" Foreground="#95a5a6" FontSize="10" FontWeight="Bold" Margin="0,0,0,5"/>
                             <Grid Grid.Row="1" Height="150">
-                                <lvc:PieChart Series="{Binding RamSeries}" InnerRadius="55" LegendLocation="None" Hoverable="False" DataTooltip="{x:Null}"/>
+                                <ProgressBar Value="{Binding RamPercent, Mode=OneWay}" Maximum="100" Height="8" VerticalAlignment="Bottom"
+                                             Foreground="#2ecc71" Background="#405060" ToolTip="{DynamicResource Loc_MetricsScope}"
+                                             Visibility="{Binding HasHeapLimit, Converter={StaticResource BoolToVis}}"/>
                                 <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                     <TextBlock Text="{Binding RamUsageText}" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center"/>
-                                    <TextBlock Text="{DynamicResource Loc_Allocated}" Foreground="#7f8c8d" FontSize="10" HorizontalAlignment="Center"/>
+                                    <TextBlock Text="{DynamicResource Loc_ResidentMemory}" Foreground="#7f8c8d" FontSize="10" HorizontalAlignment="Center"/>
                                 </StackPanel>
                             </Grid>
                             <TextBlock Grid.Row="2" Text="{Binding RamDetailText}" Foreground="#bdc3c7" FontSize="11" HorizontalAlignment="Center" Margin="0,5,0,0"/>

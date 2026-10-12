@@ -1,4 +1,4 @@
-﻿using Minecraft_Server_Manager.Models;
+using Minecraft_Server_Manager.Models;
 using Minecraft_Server_Manager.Services;
 using Minecraft_Server_Manager.Utils;
 using Minecraft_Server_Manager.Views;
@@ -16,9 +16,13 @@ namespace Minecraft_Server_Manager.ViewModels
     {
         #region Fields & Events
         private ServerProfile _serverProfile;
+        private readonly ServerProfile _originalProfile;
+        private readonly ServerSession _session;
+        private readonly ServerCatalog _catalog;
+        private readonly ServerConfiguration _configuration;
 
-        public event Action<ServerProfile> OnConfigurationSaved;
-        public event Action<ServerProfile> OnConfigurationDeleted;
+        public event Action<ServerProfile>? OnConfigurationSaved;
+        public event Func<ServerProfile, Task>? OnConfigurationDeleted;
         #endregion
 
         #region Collections
@@ -59,8 +63,8 @@ namespace Minecraft_Server_Manager.ViewModels
         }
 
         // --- Visuals ---
-        private ImageSource _serverIconSource;
-        public ImageSource ServerIconSource
+        private ImageSource? _serverIconSource;
+        public ImageSource? ServerIconSource
         {
             get => _serverIconSource;
             set { _serverIconSource = value; OnPropertyChanged(); }
@@ -168,16 +172,13 @@ namespace Minecraft_Server_Manager.ViewModels
         #endregion
 
         #region Constructor
-        public ServerEditorViewModel(string folderPath, ServerProfile? serverProfile = null)
+        public ServerEditorViewModel(string folderPath, ServerProfile serverProfile, ServerSession session, ServerCatalog catalog)
         {
-            _serverProfile = serverProfile ?? new ServerProfile
-            {
-                Id = Guid.NewGuid().ToString(),
-                JdkPath = "java",
-                JvmArguments = "-Xmx1024M -Xms1024M",
-                FolderPath = folderPath,
-                DisplayName = new DirectoryInfo(folderPath).Name
-            };
+            _originalProfile = serverProfile;
+            _serverProfile = ServerCatalog.Clone(serverProfile);
+            _session = session;
+            _catalog = catalog;
+            _configuration = new ServerConfiguration(folderPath);
 
             ServerProperties = new ObservableCollection<PropertyItem>();
 
@@ -189,10 +190,13 @@ namespace Minecraft_Server_Manager.ViewModels
             LoadPlayerLists();
         }
 
+        [System.Diagnostics.CodeAnalysis.MemberNotNull(nameof(SaveCommand), nameof(DeleteCommand), nameof(SelectImageCommand),
+            nameof(SelectJdkCommand), nameof(SelectJarCommand), nameof(SelectBatCommand), nameof(ApplyAikarFlagsCommand),
+            nameof(AddWhitelistCommand), nameof(RemoveWhitelistCommand), nameof(AddOpCommand), nameof(RemoveOpCommand))]
         private void InitializeCommands()
         {
-            SaveCommand = new RelayCommand(SaveConfiguration);
-            DeleteCommand = new RelayCommand(DeleteServer);
+            SaveCommand = new AsyncRelayCommand(_ => { SaveConfiguration(null); return Task.CompletedTask; }, ShowError);
+            DeleteCommand = new AsyncRelayCommand(DeleteServer, ShowError);
 
             SelectImageCommand = new RelayCommand(SelectImage);
             SelectJdkCommand = new RelayCommand(SelectJdk);
@@ -201,10 +205,10 @@ namespace Minecraft_Server_Manager.ViewModels
 
             ApplyAikarFlagsCommand = new RelayCommand(ApplyAikarFlags);
 
-            AddWhitelistCommand = new RelayCommand(AddWhitelistPlayer);
-            RemoveWhitelistCommand = new RelayCommand(p => RemovePlayer<WhitelistPlayer>(p, "whitelist.json", WhitelistedPlayers));
-            AddOpCommand = new RelayCommand(AddOpPlayer);
-            RemoveOpCommand = new RelayCommand(p => RemovePlayer<OpPlayer>(p, "ops.json", OpPlayers));
+            AddWhitelistCommand = new AsyncRelayCommand(AddWhitelistPlayer, ShowError);
+            RemoveWhitelistCommand = new AsyncRelayCommand(p => RemovePlayer(p, false), ShowError);
+            AddOpCommand = new AsyncRelayCommand(AddOpPlayer, ShowError);
+            RemoveOpCommand = new AsyncRelayCommand(p => RemovePlayer(p, true), ShowError);
         }
         #endregion
 
@@ -280,24 +284,7 @@ namespace Minecraft_Server_Manager.ViewModels
 
         private void LoadServerProperties()
         {
-            string path = Path.Combine(_serverProfile.FolderPath, "server.properties");
-
-            if (File.Exists(path))
-            {
-                var lines = File.ReadAllLines(path);
-                foreach (var line in lines)
-                {
-                    if (!string.IsNullOrWhiteSpace(line) && !line.Trim().StartsWith("#") && line.Contains("="))
-                    {
-                        var parts = line.Split(new[] { '=' }, 2);
-                        ServerProperties.Add(new PropertyItem
-                        {
-                            Key = parts[0].Trim(),
-                            Value = parts.Length > 1 ? parts[1].Trim() : ""
-                        });
-                    }
-                }
-            }
+            foreach (var item in _configuration.Read()) ServerProperties.Add(item);
         }
 
         private void LoadPlayerLists()
@@ -315,59 +302,40 @@ namespace Minecraft_Server_Manager.ViewModels
                 {
                     var items = JsonSerializer.Deserialize<List<T>>(File.ReadAllText(path));
                     collection.Clear();
-                    foreach (var item in items) collection.Add(item);
+                    foreach (var item in items ?? []) collection.Add(item);
                 }
-                catch { }
+                catch (Exception ex) { ShowError(ex); }
             }
         }
         #endregion
 
         #region Command Actions - Configuration & Lifecycle
-        private void SaveConfiguration(object obj)
+        private void SaveConfiguration(object? obj)
         {
-            string appDataPath = ConfigFolderPath;
-            Directory.CreateDirectory(appDataPath);
-
-            string jsonFile = Path.Combine(appDataPath, $"{_serverProfile.Id}.json");
-            string jsonString = JsonSerializer.Serialize(_serverProfile, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(jsonFile, jsonString);
-
-            SaveServerPropertiesFile();
-
-            OnConfigurationSaved?.Invoke(_serverProfile);
+            ServerCatalog.Validate(_serverProfile);
+            _configuration.Save(ServerProperties);
+            _catalog.Save(_serverProfile);
+            ServerCatalog.Apply(_serverProfile, _originalProfile);
+            OnConfigurationSaved?.Invoke(_originalProfile);
         }
 
-        private void DeleteServer(object obj)
+        private async Task DeleteServer(object? obj)
         {
             string msg = string.Format(ResourceHelper.GetString("Loc_ConfirmDeleteMsg"), DisplayName);
-            bool? result = CustomMessageBox.Show(
-                msg,
-                ResourceHelper.GetString("Loc_ConfirmDeleteTitle"),
-                MessageBoxType.Confirmation);
-
-            if (result == true)
-            {
-                OnConfigurationDeleted?.Invoke(_serverProfile);
-            }
+            if (_session.Snapshot.IsActive) msg += "\n\n" + ResourceHelper.GetString("Loc_DeleteStopsServer");
+            if (CustomMessageBox.Show(msg, ResourceHelper.GetString("Loc_ConfirmDeleteTitle"), MessageBoxType.Confirmation) == true &&
+                OnConfigurationDeleted != null)
+                await OnConfigurationDeleted(_originalProfile);
         }
 
-        private void SaveServerPropertiesFile()
-        {
-            string path = Path.Combine(_serverProfile.FolderPath, "server.properties");
-            using (StreamWriter writer = new StreamWriter(path))
-            {
-                writer.WriteLine("#Minecraft Server Properties");
-                writer.WriteLine($"#{DateTime.Now}");
-                foreach (var item in ServerProperties)
-                {
-                    writer.WriteLine($"{item.Key}={item.Value}");
-                }
-            }
-        }
+        private static void ShowError(Exception ex) =>
+            CustomMessageBox.Show(ex.Message, ResourceHelper.GetString("Loc_Error"), MessageBoxType.Error);
+
+
         #endregion
 
         #region Command Actions - File Selection
-        private void SelectJdk(object obj)
+        private void SelectJdk(object? obj)
         {
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -392,7 +360,7 @@ namespace Minecraft_Server_Manager.ViewModels
             }
         }
 
-        private void SelectJar(object obj)
+        private void SelectJar(object? obj)
         {
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -406,18 +374,11 @@ namespace Minecraft_Server_Manager.ViewModels
                 string fullPath = openFileDialog.FileName;
                 string serverFolder = _serverProfile.FolderPath;
 
-                if (fullPath.StartsWith(serverFolder, StringComparison.OrdinalIgnoreCase))
-                {
-                    JarName = fullPath.Substring(serverFolder.Length).TrimStart('\\', '/');
-                }
-                else
-                {
-                    JarName = fullPath;
-                }
+                JarName = Path.GetRelativePath(serverFolder, fullPath);
             }
         }
 
-        private void SelectBat(object obj)
+        private void SelectBat(object? obj)
         {
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -429,18 +390,11 @@ namespace Minecraft_Server_Manager.ViewModels
             if (openFileDialog.ShowDialog() == true)
             {
                 string fullPath = openFileDialog.FileName;
-                if (fullPath.StartsWith(_serverProfile.FolderPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    BatchFilename = Path.GetFileName(fullPath);
-                }
-                else
-                {
-                    BatchFilename = fullPath;
-                }
+                BatchFilename = Path.GetRelativePath(_serverProfile.FolderPath, fullPath);
             }
         }
 
-        private void SelectImage(object obj)
+        private void SelectImage(object? obj)
         {
             Microsoft.Win32.OpenFileDialog openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
@@ -467,30 +421,9 @@ namespace Minecraft_Server_Manager.ViewModels
         #endregion
 
         #region Command Actions - Tools & Optimization
-        private void ApplyAikarFlags(object obj)
+        private void ApplyAikarFlags(object? obj)
         {
-            string aikar = "-Xms8G -Xmx8G " +
-                   "-XX:+UseG1GC " +
-                   "-XX:+ParallelRefProcEnabled " +
-                   "-XX:MaxGCPauseMillis=200 " +
-                   "-XX:+UnlockExperimentalVMOptions " +
-                   "-XX:+DisableExplicitGC " +
-                   "-XX:+AlwaysPreTouch " +
-                   "-XX:G1NewSizePercent=30 " +
-                   "-XX:G1MaxNewSizePercent=40 " +
-                   "-XX:G1HeapRegionSize=8M " +
-                   "-XX:G1ReservePercent=20 " +
-                   "-XX:G1HeapWastePercent=5 " +
-                   "-XX:G1MixedGCCountTarget=4 " +
-                   "-XX:InitiatingHeapOccupancyPercent=15 " +
-                   "-XX:G1MixedGCLiveThresholdPercent=90 " +
-                   "-XX:G1RSetUpdatingPauseTimePercent=5 " +
-                   "-XX:SurvivorRatio=32 " +
-                   "-XX:+PerfDisableSharedMem " +
-                   "-XX:MaxTenuringThreshold=1 " +
-                   "-Dusing.aikars.flags=https://mcflags.emc.gs -Daikars.new.flags=true";
-
-            JvmArguments = aikar;
+            JvmArguments = JavaArguments.ApplyG1Preset(JvmArguments ?? "", ConfigManager.Settings.DefaultRam);
 
             CustomMessageBox.Show(
                 ResourceHelper.GetString("Loc_AikarMsg"),
@@ -501,136 +434,37 @@ namespace Minecraft_Server_Manager.ViewModels
         #endregion
 
         #region Command Actions - Player Management
-        private async void AddWhitelistPlayer(object obj)
+        private async Task AddWhitelistPlayer(object? obj) => await AddPlayer(false);
+        private async Task AddOpPlayer(object? obj) => await AddPlayer(true);
+        private async Task AddPlayer(bool op)
         {
-            string username = CustomMessageBox.ShowInput(
-                ResourceHelper.GetString("Loc_InputWhitelistMsg"),
-                ResourceHelper.GetString("Loc_InputWhitelistTitle"));
+            string? username = CustomMessageBox.ShowInput(
+                ResourceHelper.GetString(op ? "Loc_InputOpMsg" : "Loc_InputWhitelistMsg"),
+                ResourceHelper.GetString(op ? "Loc_InputOpTitle" : "Loc_InputWhitelistTitle"));
             if (string.IsNullOrWhiteSpace(username)) return;
-
-            var player = await MojangService.GetPlayerProfileAsync(username);
-
-            if (player == null)
+            var player = await MojangService.GetPlayerProfileAsync(username.Trim());
+            if (player == null) throw new InvalidOperationException(ResourceHelper.GetString("Loc_PlayerNotFound"));
+            await _session.ChangePermissionAsync(player, op, false);
+            if (_session.Snapshot.IsActive)
             {
-                CustomMessageBox.Show(ResourceHelper.GetString("Loc_PlayerNotFound"), ResourceHelper.GetString("Loc_Error"), MessageBoxType.Error);
-                return;
+                CustomMessageBox.Show(ResourceHelper.GetString("Loc_PermissionSent"));
+                // The server owns the live files; the UI does not claim command success.
+                LoadPlayerLists();
             }
-
-            if (WhitelistedPlayers.Any(p => p.Uuid == player.Uuid)) return;
-
-            if (_serverProfile.IsRunning && _serverProfile.ServerProcess != null && !_serverProfile.ServerProcess.HasExited)
-            {
-                try
-                {
-                    await _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"whitelist add {player.Name}");
-                }
-                catch
-                {
-                }
-            }
-
-            WhitelistedPlayers.Add(player);
-            SaveList("whitelist.json", WhitelistedPlayers);
+            else LoadPlayerLists();
         }
-
-        private async void AddOpPlayer(object obj)
+        private async Task RemovePlayer(object? parameter, bool op)
         {
-            string username = CustomMessageBox.ShowInput(ResourceHelper.GetString("Loc_InputOpMsg"), ResourceHelper.GetString("Loc_InputOpTitle"));
-            if (string.IsNullOrWhiteSpace(username)) return;
-
-            var player = await MojangService.GetPlayerProfileAsync(username);
-            if (player == null)
-            {
-                CustomMessageBox.Show(ResourceHelper.GetString("Loc_PlayerNotFound"), ResourceHelper.GetString("Loc_Error"), MessageBoxType.Error);
-                return;
-            }
-
-            if (OpPlayers.Any(p => p.Uuid == player.Uuid)) return;
-
-            if (_serverProfile.IsRunning && _serverProfile.ServerProcess != null && !_serverProfile.ServerProcess.HasExited)
-            {
-                try
-                {
-                    await _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"op {player.Name}");
-                }
-                catch
-                {
-                }
-            }
-
-            var op = new OpPlayer { Name = player.Name, Uuid = player.Uuid, Level = 4, BypassesPlayerLimit = false };
-
-            OpPlayers.Add(op);
-            SaveList("ops.json", OpPlayers);
+            if (parameter is not WhitelistPlayer player) return;
+            await _session.ChangePermissionAsync(player, op, true);
+            if (_session.Snapshot.IsActive) CustomMessageBox.Show(ResourceHelper.GetString("Loc_PermissionSent"));
+            LoadPlayerLists();
         }
 
-        private void RemovePlayer<T>(object param, string fileName, ObservableCollection<T> collection)
-        {
-            if (param is T player)
-            {
-                collection.Remove(player);
-                SaveList(fileName, collection);
 
-                if (_serverProfile.IsRunning && _serverProfile.ServerProcess != null && !_serverProfile.ServerProcess.HasExited)
-                {
-                    if (fileName == "ops.json")
-                    {
-                        try
-                        {
-                            if (player is OpPlayer opPlayer)
-                            {
-                                _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"deop {opPlayer.Name}");
-                            }
-                        }
-                        catch
-                        {
-                        }
-                    }
-                    else if (fileName == "whitelist.json")
-                    {
-                        try
-                        {
-                            // Fix : utiliser WhitelistPlayer au lieu de OpPlayer
-                            if (player is WhitelistPlayer whitelistPlayer)
-                            {
-                                _serverProfile.ServerProcess.StandardInput.WriteLineAsync($"whitelist remove {whitelistPlayer.Name}");
-                            }
-                        }
-                        catch
-                        {
-                        }
-                    }
-                }
-
-
-            }
-        }
-
-        private void SaveList<T>(string fileName, ObservableCollection<T> collection)
-        {
-            try
-            {
-                string path = Path.Combine(_serverProfile.FolderPath, fileName);
-                string json = JsonSerializer.Serialize(collection, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(path, json);
-            }
-            catch (Exception ex)
-            {
-                CustomMessageBox.Show($"Erreur sauvegarde {fileName} : {ex.Message}");
-            }
-        }
         #endregion
 
         #region Helpers & Utils
-        private string ConfigFolderPath
-        {
-            get
-            {
-                string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-                return Path.Combine(documents, "Minecraft Servers Manager");
-            }
-        }
-
         private string GenerateFriendlyJavaName(string javaPath)
         {
             if (javaPath == "java") return "Java (Défaut Système)";
@@ -638,9 +472,9 @@ namespace Minecraft_Server_Manager.ViewModels
             try
             {
                 FileInfo fileInfo = new FileInfo(javaPath);
-                DirectoryInfo binDir = fileInfo.Directory;
-                DirectoryInfo versionDir = binDir?.Parent;
-                DirectoryInfo vendorDir = versionDir?.Parent;
+                DirectoryInfo? binDir = fileInfo.Directory;
+                DirectoryInfo? versionDir = binDir?.Parent;
+                DirectoryInfo? vendorDir = versionDir?.Parent;
 
                 string versionName = versionDir?.Name ?? "Version Inconnue";
                 string vendorName = vendorDir?.Name ?? "Local";
@@ -657,8 +491,8 @@ namespace Minecraft_Server_Manager.ViewModels
         #endregion
 
         #region INotifyPropertyChanged Implementation
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string name = null) =>
+        public event PropertyChangedEventHandler? PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         #endregion
     }

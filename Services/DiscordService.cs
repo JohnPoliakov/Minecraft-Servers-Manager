@@ -6,7 +6,7 @@ namespace Minecraft_Server_Manager.Services
 {
     public static class DiscordService
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
+        private static readonly HttpClient _httpClient = new HttpClient() { Timeout = TimeSpan.FromSeconds(10) };
 
         public static int ColorGreen = 5763719;
         public static int ColorRed = 15548997;
@@ -36,11 +36,11 @@ namespace Minecraft_Server_Manager.Services
                 string json = JsonSerializer.Serialize(payload);
                 using var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-                await _httpClient.PostAsync(webhookUrl, content);
+                using var response = await _httpClient.PostAsync(webhookUrl, content);
+                if (!response.IsSuccessStatusCode) System.Diagnostics.Trace.TraceWarning("Discord notification failed: HTTP {0}", (int)response.StatusCode);
             }
-            catch
-            {
-            }
+            catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or UriFormatException)
+            { System.Diagnostics.Trace.TraceWarning("Discord notification failed: {0}", ex.GetType().Name); }
         }
     }
 }

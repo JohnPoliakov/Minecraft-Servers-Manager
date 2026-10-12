@@ -1,8 +1,9 @@
-﻿using Minecraft_Server_Manager.ViewModels;
+using Minecraft_Server_Manager.ViewModels;
 using System.Collections.Concurrent;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 
@@ -11,10 +12,11 @@ namespace Minecraft_Server_Manager.UserControls
     public partial class ServerMonitor : System.Windows.Controls.UserControl
     {
         #region Fields
-        private ServerMonitorViewModel _currentVm;
+        private ServerMonitorViewModel? _currentVm;
 
         // Système de file d'attente pour éviter de surcharger le Thread UI
         private ConcurrentQueue<string> _logQueue = new ConcurrentQueue<string>();
+        private int _droppedLines;
         private DispatcherTimer _logUpdateTimer;
 
         // Brushes statiques réutilisables (Frozen = thread-safe + pas de leak)
@@ -103,16 +105,19 @@ namespace Minecraft_Server_Manager.UserControls
         {
             if (string.IsNullOrWhiteSpace(text)) return;
             _logQueue.Enqueue(text);
+            while (_logQueue.Count > 5000 && _logQueue.TryDequeue(out _)) System.Threading.Interlocked.Increment(ref _droppedLines);
         }
 
-        private void ProcessLogQueue(object sender, EventArgs e)
+        private void ProcessLogQueue(object? sender, EventArgs e)
         {
             if (_logQueue.IsEmpty) return;
 
             bool userIsAtBottom = (ConsoleOutput.VerticalOffset + ConsoleOutput.ViewportHeight) >= (ConsoleOutput.ExtentHeight - 50);
             int batchSize = 0;
 
-            while (_logQueue.TryDequeue(out string text) && batchSize < 50)
+            int dropped = System.Threading.Interlocked.Exchange(ref _droppedLines, 0);
+            if (dropped > 0) AppendColoredLogInternal($"[MSM] {dropped} lignes non affichées (console saturée).");
+            while (batchSize < 100 && _logQueue.TryDequeue(out string? text))
             {
                 AppendColoredLogInternal(text);
                 batchSize++;
@@ -133,6 +138,7 @@ namespace Minecraft_Server_Manager.UserControls
 
         private void LoadInitialLogs(string fullLogs)
         {
+            while (_logQueue.TryDequeue(out _)) { }
             ConsoleOutput.Document.Blocks.Clear();
             if (string.IsNullOrEmpty(fullLogs)) return;
 
@@ -194,16 +200,28 @@ namespace Minecraft_Server_Manager.UserControls
         #region UI Event Handlers
         private void OnViewLoaded(object sender, RoutedEventArgs e)
         {
+            if (_currentVm != null)
+            {
+                _currentVm.LogEntryReceived -= EnqueueLog;
+                _currentVm.ClearLogsRequested -= ClearConsole;
+                _currentVm.LogEntryReceived += EnqueueLog;
+                _currentVm.ClearLogsRequested += ClearConsole;
+            }
+            _logUpdateTimer.Start();
             Dispatcher.InvokeAsync(() =>
             {
                 ConsoleOutput.ScrollToEnd();
             }, DispatcherPriority.Background);
         }
-        private void CommandInput_TextChanged(object sender, TextChangedEventArgs e)
+        private void CommandInput_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (sender is System.Windows.Controls.TextBox tb)
+            if (e.Key is Key.Up or Key.Down && Keyboard.Modifiers == ModifierKeys.None &&
+                sender is System.Windows.Controls.TextBox tb && tb.DataContext is ServerMonitorViewModel vm)
             {
+                vm.NavigateHistoryCommand.Execute(e.Key == Key.Up ? "Up" : "Down");
+                tb.GetBindingExpression(System.Windows.Controls.TextBox.TextProperty)?.UpdateTarget();
                 tb.CaretIndex = tb.Text.Length;
+                e.Handled = true;
             }
         }
 

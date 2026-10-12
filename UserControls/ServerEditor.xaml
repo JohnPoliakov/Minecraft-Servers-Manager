@@ -1,10 +1,10 @@
-﻿<UserControl x:Class="Minecraft_Server_Manager.UserControls.ServerEditor"
+<UserControl x:Class="Minecraft_Server_Manager.UserControls.ServerEditor"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:Minecraft_Server_Manager.UserControls"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="600" d:DesignWidth="800">
 
     <UserControl.Resources>
@@ -87,7 +87,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <ComboBox Grid.Column="0" ItemsSource="{Binding DetectedJavaPaths}" SelectedValue="{Binding JavaPath, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Path" DisplayMemberPath="Name" IsEditable="False" Padding="10,5" 
+                                <ComboBox Grid.Column="0" ItemsSource="{Binding DetectedJavaPaths}" SelectedValue="{Binding JavaPath, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Path" DisplayMemberPath="Name" IsEditable="False" Padding="10,5"
                                       Background="{DynamicResource SecondaryBrush}" Foreground="Black" BorderThickness="0" VerticalContentAlignment="Center">
                                     <ComboBox.Resources>
                                         <Style TargetType="ComboBoxItem">
@@ -147,7 +147,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                 </Grid.ColumnDefinitions>
 
-                                <ComboBox Grid.Column="0" ItemsSource="{Binding DetectedJavaPaths}" SelectedValue="{Binding JavaPath, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Path" DisplayMemberPath="Name" IsEditable="False" Padding="10,5" 
+                                <ComboBox Grid.Column="0" ItemsSource="{Binding DetectedJavaPaths}" SelectedValue="{Binding JavaPath, UpdateSourceTrigger=PropertyChanged}" SelectedValuePath="Path" DisplayMemberPath="Name" IsEditable="False" Padding="10,5"
           Background="{DynamicResource SecondaryBrush}" Foreground="Black" BorderThickness="0" VerticalContentAlignment="Center">
                                     <ComboBox.Resources>
                                         <Style TargetType="ComboBoxItem">
@@ -187,7 +187,7 @@
                                 <Button Grid.Column="1" Content="..." Command="{Binding SelectBatCommand}" Width="40" Background="#95a5a6" Foreground="White" BorderThickness="0" Margin="5,0,0,0"/>
                             </Grid>
 
-                            <TextBlock Text="Note: La commande 'java' dans le script sera remplacée par le JDK sélectionné ci-dessus." 
+                            <TextBlock Text="Note: La commande 'java' dans le script sera remplacée par le JDK sélectionné ci-dessus."
                                        Foreground="#7f8c8d" FontStyle="Italic" TextWrapping="Wrap" FontSize="11" Margin="0,0,0,15"/>
                         </StackPanel>
 
@@ -219,9 +219,9 @@
                     </Grid.RowDefinitions>
                     <TextBlock Grid.Row="0" Text="{DynamicResource Loc_AdvancedConfig}" Foreground="#bdc3c7" FontWeight="Bold" Margin="0,0,0,10"/>
 
-                    <DataGrid Grid.Row="1" ItemsSource="{Binding ServerProperties}" AutoGenerateColumns="False" 
-                              Background="{DynamicResource SecondaryBrush}" RowBackground="{DynamicResource SecondaryBrush}" 
-                              Foreground="White" BorderThickness="0" GridLinesVisibility="Horizontal" 
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding ServerProperties}" AutoGenerateColumns="False" CanUserAddRows="False" CanUserDeleteRows="False"
+                              Background="{DynamicResource SecondaryBrush}" RowBackground="{DynamicResource SecondaryBrush}"
+                              Foreground="White" BorderThickness="0" GridLinesVisibility="Horizontal"
                               HorizontalGridLinesBrush="{DynamicResource PrimaryBrush}" HeadersVisibility="Column">
                         <DataGrid.Resources>
                             <Style TargetType="DataGridColumnHeader">
@@ -280,8 +280,8 @@
                             <Button Content="{DynamicResource Loc_Remove}" Command="{Binding RemoveWhitelistCommand}" CommandParameter="{Binding SelectedItem, ElementName=ListWhitelist}" Background="#e74c3c" Foreground="White" Padding="10,5" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand"/>
                             <Button Content="{DynamicResource Loc_AddPlayer}" Command="{Binding AddWhitelistCommand}" Background="#2ecc71" Foreground="White" Padding="10,5" BorderThickness="0" Cursor="Hand"/>
                         </StackPanel>
-                        <DataGrid x:Name="ListWhitelist" ItemsSource="{Binding WhitelistedPlayers}" AutoGenerateColumns="False" IsReadOnly="True" 
-                                  Background="{DynamicResource SecondaryBrush}" RowBackground="{DynamicResource SecondaryBrush}" 
+                        <DataGrid x:Name="ListWhitelist" ItemsSource="{Binding WhitelistedPlayers}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="{DynamicResource SecondaryBrush}" RowBackground="{DynamicResource SecondaryBrush}"
                                   Foreground="White" HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None">
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridColumnHeader">
@@ -306,8 +306,8 @@
                             <Button Content="{DynamicResource Loc_RemoveOp}" Command="{Binding RemoveOpCommand}" CommandParameter="{Binding SelectedItem, ElementName=ListOps}" Background="#e74c3c" Foreground="White" Padding="10,5" BorderThickness="0" Margin="0,0,10,0" Cursor="Hand"/>
                             <Button Content="{DynamicResource Loc_AddOp}" Command="{Binding AddOpCommand}" Background="#f1c40f" Foreground="Black" Padding="10,5" BorderThickness="0" Cursor="Hand"/>
                         </StackPanel>
-                        <DataGrid x:Name="ListOps" ItemsSource="{Binding OpPlayers}" AutoGenerateColumns="False" IsReadOnly="True" 
-                                  Background="{DynamicResource SecondaryBrush}" RowBackground="{DynamicResource SecondaryBrush}" 
+                        <DataGrid x:Name="ListOps" ItemsSource="{Binding OpPlayers}" AutoGenerateColumns="False" IsReadOnly="True"
+                                  Background="{DynamicResource SecondaryBrush}" RowBackground="{DynamicResource SecondaryBrush}"
                                   Foreground="White" HeadersVisibility="Column" BorderThickness="0" GridLinesVisibility="None">
                             <DataGrid.Resources>
                                 <Style TargetType="DataGridColumnHeader">

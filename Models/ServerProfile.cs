@@ -1,209 +1,41 @@
-﻿using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json.Serialization;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using Minecraft_Server_Manager.Utils;
 
-namespace Minecraft_Server_Manager.Models
+namespace Minecraft_Server_Manager.Models;
+
+/// <summary>Editable definition plus the small WPF projection used by server cards.</summary>
+public class ServerProfile : INotifyPropertyChanged
 {
-    public class ServerProfile : INotifyPropertyChanged
+    private string _displayName = "";
+    private string? _iconBase64;
+    private ImageSource? _icon;
+    private bool _running, _busy, _autoRestart;
+    private int _players;
+    public int SchemaVersion { get; set; } = 1;
+    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string DisplayName { get => _displayName; set { _displayName = value; Changed(); } }
+    public string FolderPath { get; set; } = "";
+    public string JdkPath { get; set; } = "java";
+    public string JvmArguments { get; set; } = "-Xmx4G -Xms1G";
+    public string JarName { get; set; } = "server.jar";
+    public string LaunchMode { get; set; } = "Java";
+    public string BatchFilename { get; set; } = "start.bat";
+    public string? IconBase64
     {
-        #region Constants
-        /// <summary>
-        /// Taille maximale du cache de logs en caractères (~5 Mo de texte).
-        /// </summary>
-        private const int MaxCachedLogsLength = 5 * 1024 * 1024;
-        #endregion
-
-        #region Fields
-        private string _displayName;
-        private string _iconBase64;
-        private bool _autoRestartEnabled;
-        private string _autoRestartTime = "04:00";
-        private string _discordWebhookUrl;
-        private int _playerCount = 0;
-        private bool _isRunning;
-        private ImageSource _cachedServerIcon;
-        public string LaunchMode { get; set; } = "Java";
-        public string BatchFilename { get; set; } = "start.bat";
-        #endregion
-
-        #region Events
-        public event Action<string> LogReceived;
-        #endregion
-
-        #region Persistent Properties (Saved to JSON)
-
-        public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        public string DisplayName
-        {
-            get => _displayName;
-            set
-            {
-                if (_displayName != value)
-                {
-                    _displayName = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public string FolderPath { get; set; }
-        public string JdkPath { get; set; }
-        public string JvmArguments { get; set; }
-        public string JarName { get; set; } = "server.jar";
-
-        public string IconBase64
-        {
-            get => _iconBase64;
-            set
-            {
-                if (_iconBase64 != value)
-                {
-                    _iconBase64 = value;
-                    _cachedServerIcon = null; // Invalider le cache quand l'icône change
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(ServerIcon));
-                }
-            }
-        }
-
-        public bool IsRunning
-        {
-            get => _isRunning;
-            set
-            {
-                if (_isRunning != value)
-                {
-                    _isRunning = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public bool AutoRestartEnabled
-        {
-            get => _autoRestartEnabled;
-            set { _autoRestartEnabled = value; OnPropertyChanged(); }
-        }
-
-        public string AutoRestartTime
-        {
-            get => _autoRestartTime;
-            set { _autoRestartTime = value; OnPropertyChanged(); }
-        }
-
-        public string DiscordWebhookUrl
-        {
-            get => _discordWebhookUrl;
-            set { _discordWebhookUrl = value; OnPropertyChanged(); }
-        }
-
-        private bool _clearLogsOnStart = false;
-        public bool ClearLogsOnStart
-        {
-            get => _clearLogsOnStart;
-            set { _clearLogsOnStart = value; OnPropertyChanged(); }
-        }
-        #endregion
-
-        #region Runtime Properties (Ignored in JSON)
-
-        [JsonIgnore]
-        public int PlayerCount
-        {
-            get { return _playerCount; }
-            set
-            {
-                if (_playerCount != value)
-                {
-                    _playerCount = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        [JsonIgnore]
-        public DateTime LastAutoRestart { get; set; } = DateTime.MinValue;
-
-        [JsonIgnore]
-        public StringBuilder CachedLogs { get; } = new StringBuilder();
-
-        [JsonIgnore]
-        public bool IsBusy { get; set; }
-
-        [JsonIgnore]
-        public Process ServerProcess { get; set; }
-
-        /// <summary>
-        /// Génère l'image WPF à partir de la chaîne Base64 stockée.
-        /// Le résultat est mis en cache pour éviter de décoder à chaque accès.
-        /// </summary>
-        [JsonIgnore]
-        public ImageSource ServerIcon
-        {
-            get
-            {
-                if (_cachedServerIcon != null) return _cachedServerIcon;
-                if (string.IsNullOrEmpty(IconBase64)) return null;
-
-                try
-                {
-                    byte[] binaryData = Convert.FromBase64String(IconBase64);
-                    BitmapImage bi = new BitmapImage();
-                    bi.BeginInit();
-                    bi.StreamSource = new MemoryStream(binaryData);
-                    bi.CacheOption = BitmapCacheOption.OnLoad;
-                    bi.EndInit();
-                    bi.Freeze();
-                    _cachedServerIcon = bi;
-                    return _cachedServerIcon;
-                }
-                catch
-                {
-                    return null;
-                }
-            }
-        }
-        #endregion
-
-        #region Methods
-        /// <summary>
-        /// Ajoute un log au cache et déclenche l'événement pour l'UI.
-        /// Tronque le cache si la taille dépasse la limite.
-        /// </summary>
-        public void AddLog(string data)
-        {
-            if (string.IsNullOrEmpty(data)) return;
-
-            lock (CachedLogs)
-            {
-                CachedLogs.AppendLine(data);
-
-                // Tronquer le cache si trop volumineux pour éviter les OutOfMemoryException
-                if (CachedLogs.Length > MaxCachedLogsLength)
-                {
-                    // Garder la moitié la plus récente
-                    int startIndex = CachedLogs.Length - (MaxCachedLogsLength / 2);
-                    string recentLogs = CachedLogs.ToString(startIndex, CachedLogs.Length - startIndex);
-                    CachedLogs.Clear();
-                    CachedLogs.Append(recentLogs);
-                }
-            }
-
-            LogReceived?.Invoke(data);
-        }
-        #endregion
-
-        #region INotifyPropertyChanged Implementation
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected void OnPropertyChanged([CallerMemberName] string name = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-        #endregion
+        get => _iconBase64;
+        set { _iconBase64 = value; _icon = null; Changed(); Changed(nameof(ServerIcon)); }
     }
+    public bool AutoRestartEnabled { get => _autoRestart; set { _autoRestart = value; Changed(); } }
+    public string AutoRestartTime { get; set; } = "04:00";
+    public string DiscordWebhookUrl { get; set; } = "";
+    public bool ClearLogsOnStart { get; set; }
+    [JsonIgnore] public bool IsRunning { get => _running; set { if (_running != value) { _running = value; Changed(); } } }
+    [JsonIgnore] public bool IsBusy { get => _busy; set { if (_busy != value) { _busy = value; Changed(); } } }
+    [JsonIgnore] public int PlayerCount { get => _players; set { if (_players != value) { _players = value; Changed(); } } }
+    [JsonIgnore] public ImageSource? ServerIcon => _icon ??= string.IsNullOrEmpty(IconBase64) ? null : ResourceHelper.CreateImageFromBase64(IconBase64);
+    public event PropertyChangedEventHandler? PropertyChanged;
+    private void Changed([CallerMemberName] string? name = null) => PropertyChanged?.Invoke(this, new(name));
 }

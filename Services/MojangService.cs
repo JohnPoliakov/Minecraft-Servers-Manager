@@ -6,32 +6,31 @@ namespace Minecraft_Server_Manager.Services
 {
     public static class MojangService
     {
-        private static readonly HttpClient _client = new HttpClient();
+        private static readonly HttpClient _client = new HttpClient() { Timeout = TimeSpan.FromSeconds(10) };
 
-        public static async Task<WhitelistPlayer> GetPlayerProfileAsync(string username)
+        public static async Task<WhitelistPlayer?> GetPlayerProfileAsync(string username)
         {
             try
             {
-                string url = $"https://api.mojang.com/users/profiles/minecraft/{username}";
+                if (!System.Text.RegularExpressions.Regex.IsMatch(username, @"^[A-Za-z0-9_]{1,16}$")) return null;
+                string url = $"https://api.mojang.com/users/profiles/minecraft/{Uri.EscapeDataString(username)}";
 
-                var response = await _client.GetAsync(url);
+                using var response = await _client.GetAsync(url);
 
-                if (!response.IsSuccessStatusCode) return null;
+                if (response.StatusCode is System.Net.HttpStatusCode.NotFound or System.Net.HttpStatusCode.NoContent) return null;
+                response.EnsureSuccessStatusCode();
 
                 string json = await response.Content.ReadAsStringAsync();
                 var profile = JsonSerializer.Deserialize<MojangProfile>(json);
 
                 if (profile == null) return null;
 
-                string raw = profile.Id;
-                string formattedUuid = $"{raw.Substring(0, 8)}-{raw.Substring(8, 4)}-{raw.Substring(12, 4)}-{raw.Substring(16, 4)}-{raw.Substring(20)}";
+                if (!Guid.TryParseExact(profile.Id, "N", out var uuid)) throw new JsonException("Invalid player UUID.");
+                string formattedUuid = uuid.ToString("D");
 
                 return new WhitelistPlayer { Name = profile.Name, Uuid = formattedUuid };
             }
-            catch
-            {
-                return null;
-            }
+            catch (OperationCanceledException ex) { throw new HttpRequestException("La recherche du joueur a dépassé le délai autorisé.", ex); }
         }
     }
 }

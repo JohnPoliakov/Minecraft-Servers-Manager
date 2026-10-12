@@ -1,4 +1,4 @@
-﻿using Minecraft_Server_Manager.Views;
+using Minecraft_Server_Manager.Views;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
 using System.Windows;
@@ -9,7 +9,7 @@ namespace Minecraft_Server_Manager
     public partial class App : System.Windows.Application
     {
 
-        private static Mutex _mutex = null;
+        private static Mutex? _mutex;
 
         /// <summary>
         /// Identifiant unique de l'application pour Windows (toast notifications, taskbar grouping).

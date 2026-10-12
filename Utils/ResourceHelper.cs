@@ -12,7 +12,7 @@ namespace Minecraft_Server_Manager.Utils
         {
             try
             {
-                string rawString = System.Windows.Application.Current.FindResource(key) as string;
+                string? rawString = System.Windows.Application.Current.FindResource(key) as string;
 
                 if (rawString != null)
                 {
@@ -27,14 +27,17 @@ namespace Minecraft_Server_Manager.Utils
             }
         }
 
-        public static BitmapImage CreateImageFromBase64(string base64)
+        public static BitmapImage? CreateImageFromBase64(string base64)
         {
             try
             {
                 byte[] binaryData = Convert.FromBase64String(base64);
                 BitmapImage bi = new BitmapImage();
+                using var stream = new MemoryStream(binaryData);
                 bi.BeginInit();
-                bi.StreamSource = new MemoryStream(binaryData);
+                bi.StreamSource = stream;
+                bi.DecodePixelWidth = 150;
+                bi.DecodePixelHeight = 150;
                 bi.CacheOption = BitmapCacheOption.OnLoad;
                 bi.EndInit();
                 bi.Freeze();

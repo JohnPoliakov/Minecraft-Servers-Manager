@@ -1,4 +1,4 @@
-﻿using Minecraft_Server_Manager.Utils;
+using Minecraft_Server_Manager.Utils;
 using System.Windows;
 using System.Windows.Input;
 
@@ -34,7 +34,7 @@ namespace Minecraft_Server_Manager.Views
 
                 case MessageBoxType.Error:
                     BtnYes.Content = "OK";
-                    BtnYes.Background = (System.Windows.Media.Brush)new System.Windows.Media.BrushConverter().ConvertFrom("#e74c3c");
+                    BtnYes.Background = System.Windows.Media.Brushes.IndianRed;
                     BtnNo.Visibility = Visibility.Collapsed;
                     break;
 
@@ -78,7 +78,7 @@ namespace Minecraft_Server_Manager.Views
             this.Close();
         }
 
-        public static bool? Show(string message, string title = null, MessageBoxType type = MessageBoxType.Info)
+        public static bool? Show(string message, string? title = null, MessageBoxType type = MessageBoxType.Info)
         {
             string actualTitle = title ?? ResourceHelper.GetString("Loc_MsgBox_DefaultTitle");
 
@@ -89,7 +89,7 @@ namespace Minecraft_Server_Manager.Views
             return msgBox.ShowDialog();
         }
 
-        public static CustomMessageBox ShowLoading(string message, string title = null)
+        public static CustomMessageBox ShowLoading(string message, string? title = null)
         {
             string actualTitle = title ?? ResourceHelper.GetString("Loc_MsgBox_LoadingTitle");
 
@@ -100,7 +100,7 @@ namespace Minecraft_Server_Manager.Views
             return msgBox;
         }
 
-        public static string ShowInput(string message, string title = null)
+        public static string? ShowInput(string message, string? title = null)
         {
             string actualTitle = title ?? ResourceHelper.GetString("Loc_MsgBox_InputTitle");
 

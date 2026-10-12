@@ -1,0 +1,40 @@
+Audit of commit 1980935, working tree initially clean.
+Windows x64; SDK 10.0.100; application target net9.0-windows.
+
+Application build:
+dotnet build "Minecraft Server Manager.csproj" --no-restore --nologo -v:minimal
+Result: 238 warnings, 0 errors. WPF temporary compilation contributes repeated diagnostics.
+NU1701 for LiveCharts 0.9.7 and LiveCharts.Wpf 0.9.7.
+
+Compiled application probes (no Minecraft server, user profile storage or network):
+PERSIST_RUNTIME: restored IsRunning=True; Process is null=True
+PLAYERS_BEFORE_NAV: 1
+TIMER_BEFORE_NAV: True
+TIMER_AFTER_NAV: False
+PLAYERS_AFTER_NAV: monitor=0; profile=1; cached Bob=True
+BUSY_AFTER_COMPLETION: profile=False; switch enabled=False
+CLEANUP_INFLIGHT_COMMAND: ObjectDisposedException
+CONSOLE_BATCH: input=51; rendered=50; queued=0
+STATUS_BINDING: ServerStatusText exists=False
+BATCH_REWRITE: "C:\Program Files\"C:\JDK\bin\java.exe"\jdk-21\bin\"C:\JDK\bin\java.exe".exe" -jar server.jar
+BACKUP_PATH_FILTER: True
+SIBLING_JAR_PATH: 2\server.jar
+EXIT_BEFORE_DISPOSE: 7
+EXIT_AFTER_DISPOSE: InvalidOperationException
+BACKUP_LOCKED_FILE: entries=0; success logged=True; busy=False
+
+The batch rewrite, backup path filter and sibling path probes reproduce the exact
+production expressions on synthetic inputs. Other probes exercise application
+types via reflection or the underlying Process lifecycle directly.
+The semaphore probe recreates disposal during an acquired command lock; it is not
+a timing stress test of the complete UI command path.
+
+Localization:
+fr-FR, en-US, de-DE, es-ES: 144 keys each; no duplicate or missing referenced Loc_ keys.
+
+Tracked code: 29 C# files, 3810 lines; 14 XAML files, 1875 lines.
+No tracked test project, CI workflow, global.json or package lock file found.
+
+The C# probes were compiled and run directly via dotnet restore / dotnet run.
+Run-Probes.ps1 execution was blocked by the machine's PowerShell execution policy.
+Its syntax was checked separately; complete wrapper execution is not verified.
