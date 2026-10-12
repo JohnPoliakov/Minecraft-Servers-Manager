@@ -107,10 +107,9 @@ namespace Minecraft_Server_Manager
                 e.Cancel = true;
                 this.Hide();
 
-                _notifyIcon.ShowBalloonTip(1000,
+                ToastNotificationService.Show(
                     ResourceHelper.GetString("Loc_TrayBackgroundTitle"),
-                    ResourceHelper.GetString("Loc_TrayBackgroundMsg"),
-                    System.Windows.Forms.ToolTipIcon.Info);
+                    ResourceHelper.GetString("Loc_TrayBackgroundMsg"));
                 return;
             }
 
@@ -122,10 +121,9 @@ namespace Minecraft_Server_Manager
 
                 this.Hide();
 
-                _notifyIcon.ShowBalloonTip(2500,
+                ToastNotificationService.Show(
                     ResourceHelper.GetString("Loc_TrayClosingTitle"),
-                    ResourceHelper.GetString("Loc_TrayClosingMsg"),
-                    System.Windows.Forms.ToolTipIcon.Info);
+                    ResourceHelper.GetString("Loc_TrayClosingMsg"));
 
                 if (this.DataContext is MainViewModel vm)
                 {

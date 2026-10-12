@@ -68,6 +68,13 @@ namespace Minecraft_Server_Manager
             mainWindow.Show();
         }
 
+        protected override void OnExit(ExitEventArgs e)
+        {
+            // Nettoyer les toast notifications au shutdown
+            Services.ToastNotificationService.Cleanup();
+            base.OnExit(e);
+        }
+
         /// <summary>
         /// Crée un raccourci .lnk dans le Start Menu avec l'AppUserModelID et l'icône de l'application.
         /// Windows utilise ce raccourci pour résoudre l'icône affichée dans les toast notifications.

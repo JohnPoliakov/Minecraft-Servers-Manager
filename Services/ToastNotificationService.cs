@@ -4,8 +4,7 @@ namespace Minecraft_Server_Manager.Services
 {
     /// <summary>
     /// Service de notifications toast Windows natives.
-    /// Remplace les BalloonTips WinForms par de vraies notifications système.
-    /// Utilise Microsoft.Toolkit.Uwp.Notifications qui fonctionne sur Win10+ sans TFM spécifique.
+    /// Remplace les BalloonTips WinForms par de vraies notifications systÃ¨me.
     /// </summary>
     public static class ToastNotificationService
     {
@@ -25,7 +24,7 @@ namespace Minecraft_Server_Manager.Services
             }
             catch
             {
-                // Silencieux si les toast ne sont pas supportés (Windows < 10)
+                // Silencieux si les toast ne sont pas supportÃ©s
             }
         }
 
